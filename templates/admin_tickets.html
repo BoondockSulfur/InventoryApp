@@ -25,13 +25,13 @@
               <form method="post"
                     action="{{ url_for('change_ticket_status', ticket_id=t.id) }}"
                     class="d-inline">
-                {{ forms[t.id].hidden_tag() }}
-                {{ forms[t.id].status(
-                     class="form-select form-select-sm d-inline w-auto"
-                   ) }}
-                {{ forms[t.id].submit(
-                     class="btn btn-sm btn-outline-success ms-2"
-                   ) }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="status" class="form-select form-select-sm d-inline w-auto">
+                  <option value="open" {% if t.status=='open' %}selected{% endif %}>Open</option>
+                  <option value="in_progress" {% if t.status=='in_progress' %}selected{% endif %}>In Progress</option>
+                  <option value="closed" {% if t.status=='closed' %}selected{% endif %}>Closed</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-success ms-2">Aktualisieren</button>
               </form>
             </td>
             <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>

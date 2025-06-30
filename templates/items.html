@@ -1,28 +1,61 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h1>Gegenstände</h1>
-{% if current_user.role == 'admin' %}
-<a href="{{ url_for('add_item') }}" class="btn btn-success mb-3">Neuen Gegenstand hinzufügen</a>
-{% endif %}
-<table class="table table-striped">
-  <thead><tr><th>ID</th><th>Name</th><th>Seriennummer</th><th>Standort</th><th>Status</th><th>Aktionen</th></tr></thead>
-  <tbody>
-    {% for item in items %}
-    <tr>
-      <td>{{ item.id }}</td>
-      <td>{{ item.name }}</td>
-      <td>{{ item.serial }}</td>
-      <td>{{ item.location }}</td>
-      <td>
-        {% if item.is_borrowed %}
-          <span class="badge bg-warning">Verliehen</span>
-        {% else %}
-          <span class="badge bg-success">Verfügbar</span>
-        {% endif %}
-      </td>
-      <td><a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-primary btn-sm">Details</a></td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Gegenstände</h1>
+    <form class="d-flex" method="get" action="{{ url_for('items') }}">
+      <input
+        class="form-control me-2"
+        type="search"
+        name="q"
+        placeholder="Suchen…"
+        aria-label="Suche"
+        value="{{ search }}"
+      >
+      <button class="btn btn-outline-success" type="submit">Suchen</button>
+    </form>
+  </div>
+
+  {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('add_item') }}" class="btn btn-success mb-3">Neuen Gegenstand hinzufügen</a>
+  {% endif %}
+
+  {% if items %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Seriennummer</th>
+          <th>Standort</th>
+          <th>Status</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.serial }}</td>
+            <td>{{ item.location }}</td>
+            <td>
+              {% if item.is_borrowed %}
+                <span class="badge bg-warning text-dark">Verliehen</span>
+              {% else %}
+                <span class="badge bg-success">Verfügbar</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-primary btn-sm">Details</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Keine Gegenstände gefunden.</p>
+  {% endif %}
+</div>
 {% endblock %}
