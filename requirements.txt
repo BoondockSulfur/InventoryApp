@@ -1,0 +1,9 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-Mail
+Flask-WTF
+WTForms
+email-validator
+APScheduler
+WeasyPrint

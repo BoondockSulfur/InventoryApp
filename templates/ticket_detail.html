@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Ticket: {{ ticket.title }}</h1>
+  <p class="text-muted">Status: <strong>{{ ticket.status|capitalize }}</strong> | Erstellt am {{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Beschreibung</h5>
+      <p class="card-text">{{ ticket.description }}</p>
+    </div>
+  </div>
+  <h3>Nachrichten</h3>
+  {% if ticket.responses %}
+    {% for r in ticket.responses %}
+      <div class="mb-2">
+        <div><strong>{{ r.user.username }}</strong> <small class="text-muted">{{ r.created_at.strftime('%d.%m.%Y %H:%M') }}</small></div>
+        <div>{{ r.message }}</div>
+        <hr>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>Noch keine Nachrichten.</p>
+  {% endif %}
+  <h4>Antwort senden</h4>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.message.label(class="form-label") }}
+      {{ form.message(class="form-control", placeholder="Deine Nachricht...") }}
+      {% for err in form.message.errors %}
+        <div class="invalid-feedback d-block">{{ err }}</div>
+      {% endfor %}
+    </div>
+    <div class="mb-3">
+      {{ form.submit(class="btn btn-primary") }}
+      <a href="{{ url_for('my_tickets') }}" class="btn btn-secondary">Zurück</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

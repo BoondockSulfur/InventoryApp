@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Neues Ticket</h1>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control", placeholder="Betreff") }}
+      {% for err in form.title.errors %}
+        <div class="invalid-feedback d-block">{{ err }}</div>
+      {% endfor %}
+    </div>
+    <div class="mb-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control", placeholder="Beschreibung") }}
+      {% for err in form.description.errors %}
+        <div class="invalid-feedback d-block">{{ err }}</div>
+      {% endfor %}
+    </div>
+    <div class="mb-3">
+      {{ form.submit(class="btn btn-primary") }}
+      <a href="{{ url_for('my_tickets') }}" class="btn btn-secondary">Abbrechen</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

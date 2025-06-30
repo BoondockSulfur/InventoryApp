@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Details: {{ item.name }}</h1>
+<ul class="list-group mb-3">
+  <li class="list-group-item"><strong>ID:</strong> {{ item.id }}</li>
+  <li class="list-group-item"><strong>Name:</strong> {{ item.name }}</li>
+  <li class="list-group-item"><strong>Seriennummer:</strong> {{ item.serial }}</li>
+  <li class="list-group-item"><strong>Standort:</strong> {{ item.location }}</li>
+  <li class="list-group-item"><strong>Status:</strong> 
+    {% if item.is_borrowed %}
+      <span class="badge bg-warning">Verliehen</span>
+    {% else %}
+      <span class="badge bg-success">Verfügbar</span>
+    {% endif %}
+  </li>
+</ul>
+{% if loan %}
+  <h3>Aktueller Leihvorgang</h3>
+  <ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Entleiher:</strong> {{ loan.borrower.name }}</li>
+    <li class="list-group-item"><strong>Ausgeliehen am:</strong> {{ loan.loan_date }}</li>
+    <li class="list-group-item"><strong>Rückgabedatum:</strong> {{ loan.due_date }}</li>
+    {% if loan.due_date < date.today() %}
+      <li class="list-group-item list-group-item-danger"><strong>Überfällig seit:</strong> {{ loan.due_date }}</li>
+    {% endif %}
+  </ul>
+  <form method="POST" action="{{ url_for('return_item', item_id=item.id) }}">
+    <button type="submit" class="btn btn-success">Rückgabe verbuchen</button>
+  </form>
+  <a href="{{ url_for('contract', loan_id=loan.id) }}" class="btn btn-secondary mt-2">Vertrag ansehen (PDF)</a>
+{% else %}
+  {% if current_user.role == 'admin' %}
+  <a href="{{ url_for('loan_item', item_id=item.id) }}" class="btn btn-primary">Jetzt ausleihen</a>
+  {% endif %}
+{% endif %}
+{% endblock %}

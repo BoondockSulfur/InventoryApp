@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="de">
+  <head><meta charset="utf-8"><title>Leihvertrag</title></head>
+  <body>
+    <h1>Leihvertrag für Mitarbeitende</h1>
+    <p>Vertrag Nr. {{ loan.id }}</p>
+    <p>Entleiher: {{ borrower.name }} (Mitarbeitende)</p>
+    <p>Gegenstand: {{ item.name }}</p>
+    <p>Seriennummer: {{ item.serial }}</p>
+    <p>Ausleihdatum: {{ loan.loan_date }}</p>
+    <p>Voraussichtliches Rückgabedatum: {{ loan.due_date }}</p>
+    <hr>
+    <p>Mit diesem Vertrag verpflichtet sich der Entleiher, den oben genannten Gegenstand bis zum Fälligkeitsdatum in einwandfreiem Zustand zurückzugeben.</p>
+  </body>
+</html>

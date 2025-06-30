@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Alle Tickets (Admin)</h1>
+  {% if tickets %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Benutzer</th>
+          <th>Betreff</th>
+          <th>Status</th>
+          <th>Erstellt</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+          <tr>
+            <td>{{ t.id }}</td>
+            <td>{{ t.user.username }}</td>
+            <td>{{ t.title }}</td>
+            <td>
+              <form method="post"
+                    action="{{ url_for('change_ticket_status', ticket_id=t.id) }}"
+                    class="d-inline">
+                {{ forms[t.id].hidden_tag() }}
+                {{ forms[t.id].status(
+                     class="form-select form-select-sm d-inline w-auto"
+                   ) }}
+                {{ forms[t.id].submit(
+                     class="btn btn-sm btn-outline-success ms-2"
+                   ) }}
+              </form>
+            </td>
+            <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>
+              <a href="{{ url_for('ticket_detail', ticket_id=t.id) }}"
+                 class="btn btn-sm btn-outline-primary">
+                Ansehen
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Keine Tickets vorhanden.</p>
+  {% endif %}
+</div>
+{% endblock %}

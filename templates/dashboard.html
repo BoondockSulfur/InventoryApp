@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="row mb-4">
+  <div class="col-md-4">
+   <a href="{{ url_for('items') }}" class="text-decoration-none">
+    <div class="card text-white bg-primary mb-3">
+      <div class="card-header">Gegenstände insgesamt</div>
+      <div class="card-body">
+        <h5 class="card-title">{{ total_items }}</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-white bg-warning mb-3">
+     <a href="{{ url_for('active_loans') }}" class="text-decoration-none">
+      <div class="card-header">Aktuell verliehen</div>
+      <div class="card-body">
+        <h5 class="card-title">{{ borrowed_items }}</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+   <a href="{{ url_for('active_loans') }}" class="text-decoration-none">
+    <div class="card text-white bg-danger mb-3">
+      <div class="card-header">Überfällig</div>
+      <div class="card-body">
+        <h5 class="card-title">{{ overdue_loans|length }}</h5>
+      </div>
+    </div>
+  </div>
+</div>
+{% if overdue_loans %}
+<h3>Überfällige Ausleihen</h3>
+<table class="table table-bordered">
+  <thead><tr><th>Gegenstand</th><th>Entleiher</th><th>Fällig seit</th></tr></thead>
+  <tbody>
+    {% for loan in overdue_loans %}
+    <tr class="table-danger">
+      <td>{{ loan.item.name }}</td>
+      <td>{{ loan.borrower.name }}</td>
+      <td>{{ loan.due_date }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

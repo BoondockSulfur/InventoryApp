@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Gegenstand hinzufügen</h1>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <!-- Name -->
+    <div class="mb-3">
+      {{ form.name.label(class="form-label") }}
+      {{ form.name(class="form-control", placeholder="Bezeichnung") }}
+      {% if form.name.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.name.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Seriennummer mit Generieren-&-Drucken-Button -->
+    <div class="mb-3">
+      {{ form.serial.label(class="form-label") }}
+      <div class="input-group">
+        {{ form.serial(class="form-control", id="serial", placeholder="Seriennummer") }}
+        <button type="button"
+                id="generate-serial-btn"
+                class="btn btn-outline-secondary">
+          Generieren &amp; Drucken
+        </button>
+      </div>
+      {% if form.serial.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.serial.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Standort -->
+    <div class="mb-3">
+      {{ form.location.label(class="form-label") }}
+      {{ form.location(class="form-control", placeholder="Standort") }}
+      {% if form.location.errors %}
+        <div class="invalid-feedback d-block">
+          {% for error in form.location.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Absenden -->
+    <div class="mb-3">
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </form>
+</div>
+{% endblock %}

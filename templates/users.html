@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Benutzerkonten</h1>
+<a href="{{ url_for('add_user') }}" class="btn btn-success mb-3">Neues Konto erstellen</a>
+<table class="table table-striped">
+  <thead><tr><th>ID</th><th>Benutzername</th><th>E-Mail</th><th>Rolle</th></tr></thead>
+  <tbody>
+    {% for user in users %}
+    <tr>
+      <td>{{ user.id }}</td>
+      <td>{{ user.username }}</td>
+      <td>{{ user.email }}</td>
+      <td>{{ user.role }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
