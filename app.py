@@ -82,6 +82,7 @@ class Item(db.Model):
     serial      = db.Column(db.String(64), unique=True, nullable=False)
     location    = db.Column(db.String(128))
     is_borrowed = db.Column(db.Boolean, default=False)
+    defective   = db.Column(db.Boolean, default=False)
 
 class Borrower(db.Model):
     id      = db.Column(db.Integer, primary_key=True)
@@ -391,6 +392,30 @@ def print_label(item_id):
     except Exception:
         flash('Druck fehlgeschlagen','danger')
     return redirect(url_for('item_detail', item_id=item_id))
+@app.route('/item/<int:item_id>/defect', methods=['POST'])
+@login_required
+def mark_defective(item_id):
+    if current_user.role != 'admin':
+        abort(403)
+    itm = Item.query.get_or_404(item_id)
+    itm.defective = True
+    itm.is_borrowed = True   # gleichzeitig nicht verfügbar
+    db.session.commit()
+    flash('Gegenstand als defekt markiert','warning')
+    return redirect(url_for('item_detail', item_id=item_id))
+
+@app.route('/item/<int:item_id>/repair', methods=['POST'])
+@login_required
+def mark_repaired(item_id):
+    if current_user.role != 'admin':
+        abort(403)
+    itm = Item.query.get_or_404(item_id)
+    itm.defective = False
+    itm.is_borrowed = False  # wieder verfügbar
+    db.session.commit()
+    flash('Gegenstand als repariert markiert','success')
+    return redirect(url_for('item_detail', item_id=item_id))
+
 
 @app.route('/borrowers')
 @login_required

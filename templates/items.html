@@ -1,61 +1,106 @@
 {% extends 'base.html' %}
-
 {% block content %}
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Gegenstände</h1>
-    <form class="d-flex" method="get" action="{{ url_for('items') }}">
-      <input
-        class="form-control me-2"
-        type="search"
-        name="q"
-        placeholder="Suchen…"
-        aria-label="Suche"
-        value="{{ search }}"
-      >
-      <button class="btn btn-outline-success" type="submit">Suchen</button>
-    </form>
-  </div>
+  <h1>Gegenstände</h1>
 
-  {% if current_user.role == 'admin' %}
-    <a href="{{ url_for('add_item') }}" class="btn btn-success mb-3">Neuen Gegenstand hinzufügen</a>
-  {% endif %}
+  <!-- Suchformular -->
+  <form class="d-flex mb-3" method="get" action="{{ url_for('items') }}">
+    <input
+      class="form-control me-2"
+      type="search"
+      name="q"
+      placeholder="Suchen…"
+      aria-label="Suche"
+      value="{{ search }}"
+    >
+    <button class="btn btn-outline-success" type="submit">Suchen</button>
+  </form>
 
-  {% if items %}
-    <table class="table table-striped">
+  <!-- Verfügbare Geräte -->
+  <details open class="mb-3">
+    <summary><strong>Verfügbar ({{ items|selectattr("is_borrowed", "equalto", false)|rejectattr("defective")|list|length }})</strong></summary>
+    <table class="table table-hover mt-2">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Seriennummer</th>
-          <th>Standort</th>
-          <th>Status</th>
-          <th>Aktionen</th>
+          <th>Name</th><th>Seriennummer</th><th>Zustand</th><th>Aktionen</th>
         </tr>
       </thead>
       <tbody>
-        {% for item in items %}
-          <tr>
-            <td>{{ item.id }}</td>
-            <td>{{ item.name }}</td>
-            <td>{{ item.serial }}</td>
-            <td>{{ item.location }}</td>
-            <td>
-              {% if item.is_borrowed %}
-                <span class="badge bg-warning text-dark">Verliehen</span>
-              {% else %}
-                <span class="badge bg-success">Verfügbar</span>
-              {% endif %}
-            </td>
-            <td>
-              <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-primary btn-sm">Details</a>
-            </td>
-          </tr>
+        {% for itm in items %}
+          {% if not itm.defective and not itm.is_borrowed %}
+            <tr>
+              <td>{{ itm.name }}</td>
+              <td>{{ itm.serial }}</td>
+              <td><span class="badge bg-success">Verfügbar</span></td>
+              <td>
+                <a href="{{ url_for('item_detail', item_id=itm.id) }}"
+                   class="btn btn-sm btn-outline-primary">Details</a>
+                {% if current_user.role == 'admin' %}
+                  <a href="{{ url_for('loan_item', item_id=itm.id) }}"
+                     class="btn btn-sm btn-outline-secondary">Ausleihen</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endif %}
         {% endfor %}
       </tbody>
     </table>
-  {% else %}
-    <p>Keine Gegenstände gefunden.</p>
-  {% endif %}
+  </details>
+
+  <!-- Verliehene Geräte -->
+  <details class="mb-3">
+    <summary><strong>Verliehen ({{ items|selectattr("is_borrowed", "equalto", true)|rejectattr("defective")|list|length }})</strong></summary>
+    <table class="table table-hover mt-2">
+      <thead>
+        <tr>
+          <th>Name</th><th>Seriennummer</th><th>Zustand</th><th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for itm in items %}
+          {% if not itm.defective and itm.is_borrowed %}
+            <tr>
+              <td>{{ itm.name }}</td>
+              <td>{{ itm.serial }}</td>
+              <td><span class="badge bg-warning text-dark">Verliehen</span></td>
+              <td>
+                <a href="{{ url_for('item_detail', item_id=itm.id) }}"
+                   class="btn btn-sm btn-outline-primary">Details</a>
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </details>
+
+  <!-- Defekte Geräte -->
+  <details class="mb-3">
+    <summary><strong>Defekt ({{ items|selectattr("defective")|list|length }})</strong></summary>
+    <table class="table table-hover mt-2">
+      <thead>
+        <tr>
+          <th>Name</th><th>Seriennummer</th><th>Zustand</th><th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for itm in items %}
+          {% if itm.defective %}
+            <tr>
+              <td>{{ itm.name }}</td>
+              <td>{{ itm.serial }}</td>
+              <td><span class="badge bg-danger">Defekt</span></td>
+              <td>
+                <!-- Details weiterhin erlaubt -->
+                <a href="{{ url_for('item_detail', item_id=itm.id) }}"
+                   class="btn btn-sm btn-outline-primary">Details</a>
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </details>
+
 </div>
 {% endblock %}

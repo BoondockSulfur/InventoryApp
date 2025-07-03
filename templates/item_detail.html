@@ -7,14 +7,17 @@
   <li class="list-group-item"><strong>Name:</strong> {{ item.name }}</li>
   <li class="list-group-item"><strong>Seriennummer:</strong> {{ item.serial }}</li>
   <li class="list-group-item"><strong>Standort:</strong> {{ item.location }}</li>
-  <li class="list-group-item"><strong>Status:</strong>
-    {% if item.is_borrowed %}
+  <li class="list-group-item"><strong>Zustand:</strong>
+    {% if item.defective %}
+      <span class="badge bg-danger">Defekt</span>
+    {% elif item.is_borrowed %}
       <span class="badge bg-warning">Verliehen</span>
     {% else %}
       <span class="badge bg-success">Verfügbar</span>
     {% endif %}
   </li>
 </ul>
+
 {% if loan %}
   <h3>Aktueller Leihvorgang</h3>
   <ul class="list-group mb-3">
@@ -25,16 +28,25 @@
       <li class="list-group-item list-group-item-danger"><strong>Überfällig seit:</strong> {{ loan.due_date }}</li>
     {% endif %}
   </ul>
-
-  <form method="post" action="{{ url_for('return_item', item_id=item.id) }}">
+  <form method="post" action="{{ url_for('return_item', item_id=item.id) }}" class="d-inline">
     {{ return_form.hidden_tag() }}
     {{ return_form.submit(class="btn btn-success") }}
   </form>
-
   <a href="{{ url_for('contract', loan_id=loan.id) }}" class="btn btn-secondary mt-2">Vertrag ansehen (PDF)</a>
-{% else %}
-  {% if current_user.role == 'admin' %}
-    <a href="{{ url_for('loan_item', item_id=item.id) }}" class="btn btn-primary">Jetzt ausleihen</a>
+{% endif %}
+
+{% if current_user.role == 'admin' %}
+  {% if not item.defective %}
+    <form method="post" action="{{ url_for('mark_defective', item_id=item.id) }}" class="d-inline ms-2">
+      {{ return_form.hidden_tag() }}
+      <button type="submit" class="btn btn-sm btn-outline-danger">Als defekt markieren</button>
+    </form>
+  {% else %}
+    <form method="post" action="{{ url_for('mark_repaired', item_id=item.id) }}" class="d-inline ms-2">
+      {{ return_form.hidden_tag() }}
+      <button type="submit" class="btn btn-sm btn-outline-success">Als repariert markieren</button>
+    </form>
   {% endif %}
 {% endif %}
+
 {% endblock %}
