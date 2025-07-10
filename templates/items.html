@@ -122,7 +122,7 @@
                       action="{{ url_for('delete_item', item_id=itm.id) }}"
                       class="d-inline"
                       onsubmit="return confirm('Wirklich löschen?');">
-                  {{ csrf_token() }}
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="btn btn-sm btn-outline-danger">
                     Löschen
                   </button>
@@ -174,7 +174,7 @@
                       action="{{ url_for('delete_item', item_id=itm.id) }}"
                       class="d-inline"
                       onsubmit="return confirm('Wirklich löschen?');">
-                  {{ csrf_token() }}
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="btn btn-sm btn-outline-danger">
                     Löschen
                   </button>

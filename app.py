@@ -34,6 +34,7 @@ from functools import wraps
 from flask import abort
 from flask import current_app, g
 from itsdangerous import URLSafeTimedSerializer as Serializer
+from sqlalchemy import or_
 
 # ─── Umgebungsvariablen laden ─────────────────────────────────────────────────
 load_dotenv()
@@ -732,11 +733,21 @@ def active_loans():
 @login_required
 @requires_permission('manage_users')
 def users():
-    if current_user.role not in ('admin','verwaltung'):
-        flash('Zugriff verweigert','danger')
+    if current_user.role not in ('admin', 'verwaltung'):
+        flash('Zugriff verweigert', 'danger')
         return redirect(url_for('dashboard'))
-    usr_list = User.query.all()
-    return render_template('users.html', users=usr_list)
+    q = request.args.get('q', '').strip()
+    query = User.query
+    if q:
+        query = query.filter(
+            or_(
+                User.username.ilike(f'%{q}%'),
+                User.email.ilike(f'%{q}%'),
+                User.role.ilike(f'%{q}%')
+            )
+        )
+    users_list = query.order_by(User.id).all()
+    return render_template('users.html', users=users_list, search=q)
 
 @app.route('/user/add', methods=['GET','POST'])
 @login_required

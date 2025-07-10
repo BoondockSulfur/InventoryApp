@@ -1,14 +1,25 @@
 {% extends 'base.html' %}
-
 {% block content %}
 <div class="container mt-4">
-  <h1>Benutzerkonten</h1>
-
-  {% if 'manage_users' in permissions %}
-    <a href="{{ url_for('add_user') }}" class="btn btn-success mb-3">
-      Neues Konto erstellen
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Benutzerkonten</h1>
+    <a href="{{ url_for('add_user') }}" class="btn btn-success">
+      <i class="bi bi-plus-lg"></i> Neues Konto erstellen
     </a>
-  {% endif %}
+  </div>
+
+  <!-- Suchformular -->
+  <form class="d-flex mb-4" method="get" action="{{ url_for('users') }}">
+    <input
+      class="form-control me-2"
+      type="search"
+      name="q"
+      placeholder="Suche nach Name, E-Mail oder Rolle…"
+      value="{{ search }}"
+      aria-label="Suche"
+    >
+    <button class="btn btn-outline-primary" type="submit">Suchen</button>
+  </form>
 
   <table class="table table-striped">
     <thead>
@@ -17,42 +28,31 @@
         <th>Benutzername</th>
         <th>E-Mail</th>
         <th>Rolle</th>
-        <th>Gruppen Nr.</th>
-        {% if 'manage_users' in permissions %}
-          <th>Aktionen</th>
-        {% endif %}
+        <th>Aktionen</th>
       </tr>
     </thead>
     <tbody>
-      {% for user in users %}
-        <tr>
-          <td>{{ user.id }}</td>
-          <td>{{ user.username }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
-          <td>{{ user.group_number or '-' }}</td>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.role }}</td>
+        <td>
+          <!-- Beispiel: Bearbeiten/Löschen nur für Admins -->
           {% if 'manage_users' in permissions %}
-            <td>
-              <a href="{{ url_for('edit_user', user_id=user.id) }}"
-                 class="btn btn-sm btn-outline-primary me-1">
-                Bearbeiten
-              </a>
-              <form method="post"
-                    action="{{ url_for('delete_user', user_id=user.id) }}"
-                    class="d-inline"
-                    onsubmit="return confirm('Soll dieser Benutzer wirklich gelöscht werden?');">
-                <!-- Hier der versteckte CSRF-Token statt nur {{ csrf_token() }} -->
-                <input type="hidden"
-                       name="csrf_token"
-                       value="{{ csrf_token() }}">
-                <button type="submit"
-                        class="btn btn-sm btn-outline-danger">
-                  Löschen
-                </button>
-              </form>
-            </td>
+            <a href="{{ url_for('edit_user', user_id=u.id) }}"
+               class="btn btn-sm btn-outline-secondary me-1">Bearbeiten</a>
+            <form method="post"
+                  action="{{ url_for('delete_user', user_id=u.id) }}"
+                  class="d-inline"
+                  onsubmit="return confirm('Benutzer wirklich löschen?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Löschen</button>
+            </form>
           {% endif %}
-        </tr>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
