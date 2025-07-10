@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h1>Einstellungen</h1>
+  <form method="post">
+    {{ form.hidden_tag() }}
+
+    {{ form.mail_server.label }} {{ form.mail_server(class="form-control mb-2") }}
+    {{ form.mail_port.label }}   {{ form.mail_port(class="form-control mb-2") }}
+    {{ form.mail_use_tls() }} {{ form.mail_use_tls.label }}<br><br>
+    {{ form.mail_username.label }} {{ form.mail_username(class="form-control mb-2") }}
+    {{ form.mail_password.label }} {{ form.mail_password(class="form-control mb-2") }}
+    {{ form.admins.label }}        {{ form.admins(class="form-control mb-2") }}
+    {{ form.printer_ip.label }}    {{ form.printer_ip(class="form-control mb-2") }}
+    {{ form.printer_port.label }}  {{ form.printer_port(class="form-control mb-2") }}
+
+    <hr>
+    <h4>Dell API Zugang</h4>
+    {{ form.dell_client_id.label }}     {{ form.dell_client_id(class="form-control mb-2") }}
+    {{ form.dell_client_secret.label }} {{ form.dell_client_secret(class="form-control mb-2") }}
+
+    {{ form.submit(class="btn btn-primary mt-3") }}
+  </form>
+
+  <hr class="my-4">
+  <h3>Audit Log (letzte 50 Einträge)</h3>
+  <table class="table table-sm">
+    <thead><tr><th>Zeit</th><th>User</th><th>Methode</th><th>Route</th></tr></thead>
+    <tbody>
+      {% for a in audits %}
+      <tr>
+        <td>{{ a.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+        <td>{{ a.user.username }}</td>
+        <td>{{ a.method }}</td>
+        <td>{{ a.endpoint }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <hr class="my-4">
+  <h3>Error Log (letzte 50 Zeilen)</h3>
+  <pre style="background:#f8f9fa; padding:1em; max-height:300px; overflow:auto;">
+{{ errors|join('') }}
+  </pre>
+</div>
+{% endblock %}

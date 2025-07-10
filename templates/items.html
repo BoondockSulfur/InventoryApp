@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="container mt-4">
+  <!-- Header mit "Neuer Gegenstand"-Button -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Gegenstände</h1>
     {% if current_user.role == 'admin' %}
@@ -16,7 +18,7 @@
       class="form-control me-2"
       type="search"
       name="q"
-      placeholder="Suchen…"
+      placeholder="Suchen …"
       aria-label="Suche"
       value="{{ search }}"
     >
@@ -27,7 +29,7 @@
   <details open class="mb-4">
     <summary class="mb-2">
       <strong>
-        Verfügbar ({{ items 
+        Verfügbar ({{ items
           |selectattr("is_borrowed", "equalto", false)
           |rejectattr("defective")
           |list
@@ -48,15 +50,30 @@
           <tr>
             <td>{{ itm.name }}</td>
             <td>{{ itm.serial }}</td>
-            <td>
-              <span class="badge bg-success">Verfügbar</span>
-            </td>
+            <td><span class="badge bg-success">Verfügbar</span></td>
             <td>
               <a href="{{ url_for('item_detail', item_id=itm.id) }}"
-                 class="btn btn-sm btn-outline-primary me-1">Details</a>
+                 class="btn btn-sm btn-outline-primary me-1">
+                Details
+              </a>
               {% if current_user.role == 'admin' %}
                 <a href="{{ url_for('loan_item', item_id=itm.id) }}"
-                   class="btn btn-sm btn-outline-secondary">Ausleihen</a>
+                   class="btn btn-sm btn-outline-secondary me-1">
+                  Ausleihen
+                </a>
+                <a href="{{ url_for('edit_item', item_id=itm.id) }}"
+                   class="btn btn-sm btn-outline-secondary me-1">
+                  Bearbeiten
+                </a>
+                <form method="post"
+                      action="{{ url_for('delete_item', item_id=itm.id) }}"
+                      class="d-inline me-1"
+                      onsubmit="return confirm('Wirklich löschen?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    Löschen
+                  </button>
+                </form>
               {% endif %}
             </td>
           </tr>
@@ -69,7 +86,7 @@
   <details class="mb-4">
     <summary class="mb-2">
       <strong>
-        Verliehen ({{ items 
+        Verliehen ({{ items
           |selectattr("is_borrowed", "equalto", true)
           |rejectattr("defective")
           |list
@@ -90,12 +107,27 @@
           <tr>
             <td>{{ itm.name }}</td>
             <td>{{ itm.serial }}</td>
-            <td>
-              <span class="badge bg-warning text-dark">Verliehen</span>
-            </td>
+            <td><span class="badge bg-warning text-dark">Verliehen</span></td>
             <td>
               <a href="{{ url_for('item_detail', item_id=itm.id) }}"
-                 class="btn btn-sm btn-outline-primary">Details</a>
+                 class="btn btn-sm btn-outline-primary me-1">
+                Details
+              </a>
+              {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('edit_item', item_id=itm.id) }}"
+                   class="btn btn-sm btn-outline-secondary me-1">
+                  Bearbeiten
+                </a>
+                <form method="post"
+                      action="{{ url_for('delete_item', item_id=itm.id) }}"
+                      class="d-inline"
+                      onsubmit="return confirm('Wirklich löschen?');">
+                  {{ csrf_token() }}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    Löschen
+                  </button>
+                </form>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
@@ -107,9 +139,9 @@
   <details class="mb-4">
     <summary class="mb-2">
       <strong>
-        Defekt ({{ items 
-          |selectattr("defective") 
-          |list 
+        Defekt ({{ items
+          |selectattr("defective")
+          |list
           |length }})
       </strong>
     </summary>
@@ -127,12 +159,27 @@
           <tr>
             <td>{{ itm.name }}</td>
             <td>{{ itm.serial }}</td>
-            <td>
-              <span class="badge bg-danger">Defekt</span>
-            </td>
+            <td><span class="badge bg-danger">Defekt</span></td>
             <td>
               <a href="{{ url_for('item_detail', item_id=itm.id) }}"
-                 class="btn btn-sm btn-outline-primary">Details</a>
+                 class="btn btn-sm btn-outline-primary me-1">
+                Details
+              </a>
+              {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('edit_item', item_id=itm.id) }}"
+                   class="btn btn-sm btn-outline-secondary me-1">
+                  Bearbeiten
+                </a>
+                <form method="post"
+                      action="{{ url_for('delete_item', item_id=itm.id) }}"
+                      class="d-inline"
+                      onsubmit="return confirm('Wirklich löschen?');">
+                  {{ csrf_token() }}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    Löschen
+                  </button>
+                </form>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}

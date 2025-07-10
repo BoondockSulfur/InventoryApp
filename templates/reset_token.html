@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h1>Neues Passwort festlegen</h1>
+  <p>Gib hier dein neues Passwort ein.</p>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.password.label(class="form-label") }}
+      {{ form.password(class="form-control") }}
+      {% if form.password.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.password.errors %}{{ err }}{% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      {{ form.password2.label(class="form-label") }}
+      {{ form.password2(class="form-control") }}
+      {% if form.password2.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.password2.errors %}{{ err }}{% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+    <a href="{{ url_for('login') }}" class="btn btn-secondary ms-2">Abbrechen</a>
+  </form>
+</div>
+{% endblock %}

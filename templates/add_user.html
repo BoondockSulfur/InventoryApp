@@ -1,28 +1,93 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Neues Benutzerkonto</h1>
-<form method="POST">
-  {{ form.hidden_tag() }}
-  <div class="mb-3">
-    {{ form.username.label(class="form-label") }}
-    {{ form.username(class="form-control") }}
-  </div>
-  <div class="mb-3">
-    {{ form.email.label(class="form-label") }}
-    {{ form.email(class="form-control") }}
-  </div>
-  <div class="mb-3">
-    {{ form.password.label(class="form-label") }}
-    {{ form.password(class="form-control") }}
-  </div>
-  <div class="mb-3">
-    {{ form.password2.label(class="form-label") }}
-    {{ form.password2(class="form-control") }}
-  </div>
-  <div class="mb-3">
-    {{ form.role.label(class="form-label") }}
-    {{ form.role(class="form-select") }}
-  </div>
-  {{ form.submit(class="btn btn-primary") }}
-</form>
+<div class="container mt-4">
+  <h1>Neues Benutzerkonto</h1>
+
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <!-- Benutzername -->
+    <div class="mb-3">
+      {{ form.username.label(class="form-label") }}
+      {{ form.username(class="form-control", placeholder="Benutzername") }}
+      {% if form.username.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.username.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- E-Mail -->
+    <div class="mb-3">
+      {{ form.email.label(class="form-label") }}
+      {{ form.email(class="form-control", placeholder="E-Mail-Adresse") }}
+      {% if form.email.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.email.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Passwort -->
+    <div class="mb-3">
+      {{ form.password.label(class="form-label") }}
+      {{ form.password(class="form-control", placeholder="Passwort") }}
+      {% if form.password.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.password.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Passwort wiederholen -->
+    <div class="mb-3">
+      {{ form.password2.label(class="form-label") }}
+      {{ form.password2(class="form-control", placeholder="Passwort wiederholen") }}
+      {% if form.password2.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.password2.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Rolle -->
+    <div class="mb-3">
+      {{ form.role.label(class="form-label") }}
+      {{ form.role(class="form-select") }}
+      {% if form.role.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.role.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Gruppen-Nr. (nur für Kunden) -->
+    <div class="mb-3">
+      {{ form.group_number.label(class="form-label") }}
+      {{ form.group_number(class="form-control", placeholder="Gruppen-Nr. (z. B. 12345)") }}
+      {% if form.group_number.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.group_number.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.submit(class="btn btn-success") }}
+      <a href="{{ url_for('users') }}" class="btn btn-secondary ms-2">Abbrechen</a>
+    </div>
+  </form>
+</div>
 {% endblock %}

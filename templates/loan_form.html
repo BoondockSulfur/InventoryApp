@@ -1,21 +1,33 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <h1>Ausleihe: {{ item.name }}</h1>
-<form method="POST"> action="{{ url_for('loan_item', item_id=item.id) }}">
-  {{ form.hidden_tag() }}  {# CSRF-Token #}
-<div class="mb-3">
-  <label for="borrower">Entleiher</label>
-  <input list="borrowers" id="borrower" name="borrower_name" class="form-control" required>
-  <datalist id="borrowers">
-    {% for b in borrowers %}
-      <option data-id="{{ b.id }}" value="{{ b.name }}"></option>
-    {% endfor %}
-  </datalist>
-</div>
+
+<form method="POST" action="{{ url_for('loan_item', item_id=item.id) }}">
+  {{ form.hidden_tag() }}
+
+  <div class="mb-3">
+    <label for="borrower" class="form-label">Entleiher</label>
+    <input
+      list="borrowers"
+      id="borrower"
+      name="borrower_name"
+      class="form-control"
+      placeholder="Name des Mitarbeiters/Kunden"
+      required
+    >
+    <datalist id="borrowers">
+      {% for u in borrowers %}
+        <option value="{{ u.username }}">{{ u.email }}</option>
+      {% endfor %}
+    </datalist>
+  </div>
+
   <div class="mb-3">
     {{ form.due_date.label(class="form-label") }}
     {{ form.due_date(class="form-control", type="date") }}
   </div>
+
   {{ form.submit(class="btn btn-primary") }}
 </form>
 {% endblock %}

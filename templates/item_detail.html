@@ -35,6 +35,35 @@
   <a href="{{ url_for('contract', loan_id=loan.id) }}" class="btn btn-secondary mt-2">Vertrag ansehen (PDF)</a>
 {% endif %}
 
+{% if warranty %}
+  <h3 class="mt-4">Garantie-Informationen</h3>
+
+  <div class="accordion" id="warrantyAccordion">
+    {% for key, val in warranty.items() %}
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="heading-{{ loop.index }}">
+          <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapse-{{ loop.index }}"
+                  aria-expanded="false"
+                  aria-controls="collapse-{{ loop.index }}">
+            {{ key }}
+          </button>
+        </h2>
+        <div id="collapse-{{ loop.index }}"
+             class="accordion-collapse collapse"
+             aria-labelledby="heading-{{ loop.index }}"
+             data-bs-parent="#warrantyAccordion">
+          <div class="accordion-body">
+            {{ val }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
 {% if current_user.role == 'admin' %}
   {% if not item.defective %}
     <form method="post" action="{{ url_for('mark_defective', item_id=item.id) }}" class="d-inline ms-2">
@@ -48,5 +77,4 @@
     </form>
   {% endif %}
 {% endif %}
-
 {% endblock %}

@@ -13,7 +13,12 @@
         {{ form.password.label(class="form-label") }}
         {{ form.password(class="form-control") }}
       </div>
-      {{ form.submit(class="btn btn-primary") }}
+      <div class="mb-3">
+        {{ form.submit(class="btn btn-primary") }}
+      </div>
+      <p class="mt-2">
+        <a href="{{ url_for('reset_request') }}">Passwort vergessen?</a>
+      </p>
     </form>
   </div>
 </div>
