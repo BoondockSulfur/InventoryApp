@@ -1,101 +1,88 @@
-// JavaScript placeholder
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('generate-serial-btn');
-  if (!btn) return;
-
-  btn.addEventListener('click', async () => {
-    btn.disabled = true;               // Optional: Button kurz deaktivieren
-    btn.innerText = 'Generiere...';
-
-    try {
-      const resp = await fetch('/generate_serial');
-      const { serial } = await resp.json();
-      document.getElementById('serial').value = serial;
-      btn.innerText = 'Erfolgreich gedruckt';
-    } catch (err) {
-      console.error('Fehler:', err);
-      btn.innerText = 'Fehler beim Drucken';
-    } finally {
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.innerText = 'Generieren & Drucken';
-      }, 2000);
-    }
-  });
-});
-
-console.log('JS geladen');
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('generate-serial-btn');
-  if (!btn) return;
-
-  btn.addEventListener('click', async () => {
-    btn.disabled = true;               // Optional: Button kurz deaktivieren
-    btn.innerText = 'Generiere...';
-
-    try {
-      const resp = await fetch('/generate_serial');
-      const { serial } = await resp.json();
-      document.getElementById('serial').value = serial;
-      btn.innerText = 'Erfolgreich gedruckt';
-    } catch (err) {
-      console.error('Fehler:', err);
-      btn.innerText = 'Fehler beim Drucken';
-    } finally {
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.innerText = 'Generieren & Drucken';
-      }, 2000);
-    }
-  });
-});
+// static/js/main.js
 
 document.addEventListener('DOMContentLoaded', () => {
-  const genBtn    = document.getElementById('generate-serial');
-  const repBtn    = document.getElementById('reprint-serial');
-  const serialIn  = document.getElementById('serial');
+  // ─── Dark Mode Initialisierung ────────────────────────────────
+  if (localStorage.getItem('darkMode') === 'enabled') {
+    document.body.classList.add('dark-mode');
+  }
+  const darkModeToggle = document.getElementById('dark-mode-toggle');
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const enabled = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', enabled ? 'enabled' : 'disabled');
+    });
+  }
 
-  if (!genBtn || !repBtn || !serialIn) return;
+  // ─── Seriennummer generieren & drucken ──────────────────────────────────
+  const genBtn   = document.getElementById('generate-serial-btn');
+  const repBtn   = document.getElementById('reprint-serial-btn');
+  const serialIn = document.getElementById('serial');
 
-  // 1) Generieren & Drucken
-  genBtn.addEventListener('click', async e => {
-    e.preventDefault();
-    try {
-      const resp = await fetch('/generate_serial');
-      const data = await resp.json();
-      if (data.serial) {
-        serialIn.value = data.serial;
-        repBtn.style.display = 'inline-block';
-      } else {
-        alert('Seriennummer konnte nicht generiert werden.');
+  // Wiederholungs-Button initial ein- oder ausblenden
+  if (serialIn && repBtn) {
+    repBtn.style.display = serialIn.value ? 'inline-block' : 'none';
+  }
+
+  if (genBtn && repBtn && serialIn) {
+    // 1) Generieren & Drucken
+    genBtn.addEventListener('click', async e => {
+      e.preventDefault();
+      genBtn.disabled = true;
+      genBtn.innerText = 'Generiere…';
+      try {
+        const resp = await fetch('/generate_serial');
+        const data = await resp.json();
+        if (data.serial) {
+          serialIn.value = data.serial;
+          repBtn.style.display = 'inline-block';
+          genBtn.innerText = 'Gedruckt';
+        } else {
+          genBtn.innerText = 'Fehler';
+        }
+      } catch (err) {
+        console.error('Fehler beim Generieren:', err);
+        genBtn.innerText = 'Fehler';
+      } finally {
+        setTimeout(() => {
+          genBtn.disabled = false;
+          genBtn.innerText = 'Generieren & Drucken';
+        }, 2000);
       }
-    } catch (err) {
-      console.error(err);
-      alert('Fehler beim Generieren der Seriennummer.');
-    }
-  });
+    });
 
-  // 2) Druckauftrag wiederholen
-  repBtn.addEventListener('click', async e => {
-    e.preventDefault();
-    const serial = serialIn.value;
-    if (!serial) {
-      alert('Keine Seriennummer zum Drucken vorhanden.');
-      return;
-    }
-    try {
-      const resp = await fetch('/print_serial', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({serial})
-      });
-      const data = await resp.json();
-      if (!data.success) {
-        alert('Druck fehlgeschlagen: ' + (data.error || 'unbekannter Fehler'));
+    // 2) Wiederholungsdruck
+    repBtn.addEventListener('click', async e => {
+      e.preventDefault();
+      const serial = serialIn.value;
+      if (!serial) {
+        alert('Keine Seriennummer zum Drucken vorhanden.');
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      alert('Fehler beim Wiederholungsdruck.');
-    }
-  });
+      repBtn.disabled = true;
+      repBtn.innerText = 'Drucke…';
+      try {
+        const resp = await fetch('/print_serial', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({serial})
+        });
+        const result = await resp.json();
+        if (result.success) {
+          repBtn.innerText = 'Erneut gedruckt';
+        } else {
+          repBtn.innerText = 'Fehler';
+          console.error('Druck-Fehler:', result.error);
+        }
+      } catch (err) {
+        console.error('Fehler beim Wiederholungsdruck:', err);
+        repBtn.innerText = 'Fehler';
+      } finally {
+        setTimeout(() => {
+          repBtn.disabled = false;
+          repBtn.innerText = 'Wiederholen';
+        }, 2000);
+      }
+    });
+  }
 });

@@ -1,3 +1,37 @@
+/* default (hell) */
+:root {
+  --bg: #ffffff;
+  --fg: #212529;
+  --nav-bg: #343a40;
+  --nav-fg: #ffffff;
+  --card-bg: #f8f9fa;
+}
+
+/* dark mode overrides */
+body.dark-mode {
+  --bg: #121212;
+  --fg: #e1e1e1;
+  --nav-bg: #212529;
+  --nav-fg: #f8f9fa;
+  --card-bg: #2c2f33;
+}
+
 body {
-    padding-bottom: 60px;
+  background-color: var(--bg);
+  color: var(--fg);
+  padding: 6px;
+}
+
+.navbar, .dropdown-menu {
+  background-color: var(--nav-bg) !important;
+}
+
+.navbar .nav-link,
+.navbar .navbar-brand {
+  color: var(--nav-fg) !important;
+}
+
+.card, .table, .list-group-item {
+  background-color: var(--card-bg);
+  color: var(--fg);
 }

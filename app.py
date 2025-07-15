@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+
+APP_VERSION = "1.0.0"
+
 import os
 import uuid
 import socket
 import csv, subprocess
 import logging
+import requests
 from logging.handlers import RotatingFileHandler
 from io import BytesIO
 from datetime import date, datetime
@@ -380,6 +384,25 @@ def check_overdue():
             )
             mail.send(adm_msg)
 
+def check_for_update():
+    """
+    Ruft die neueste GitHub-Release über die API ab und
+    vergleicht das Tag mit APP_VERSION.
+    Gibt (is_newer, latest_version) zurück.
+    """
+    try:
+        r = requests.get(
+            "https://api.github.com/repos/BoondockSulfur/InventoryApp/releases/latest",
+            timeout=3
+        )
+        r.raise_for_status()
+        latest = r.json().get("tag_name", "")
+        if latest and latest != APP_VERSION:
+            return True, latest
+    except Exception as e:
+        app.logger.debug(f"Update-Check fehlgeschlagen: {e}")
+    return False, APP_VERSION
+
 # Scheduler: täglich um 09:00
 scheduler.add_job(func=check_overdue, trigger='cron', hour=9, minute=0)
 scheduler.start()
@@ -416,6 +439,15 @@ def requires_permission(perm):
             return f(*args, **kwargs)
         return wrapped
     return decorator
+
+def inject_update_info():
+    # Führt den Update-Check nur einmal pro Request aus
+    is_newer, latest = check_for_update()
+    return {
+        "update_available": is_newer,
+        "latest_version": latest,
+        "current_version": APP_VERSION
+    }
 
 @app.route('/generate_serial', methods=['GET'])
 @login_required
