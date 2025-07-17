@@ -1,19 +1,6 @@
 // static/js/main.js
 
 document.addEventListener('DOMContentLoaded', () => {
-  // ─── Dark Mode Initialisierung ────────────────────────────────
-  if (localStorage.getItem('darkMode') === 'enabled') {
-    document.body.classList.add('dark-mode');
-  }
-  const darkModeToggle = document.getElementById('dark-mode-toggle');
-  if (darkModeToggle) {
-    darkModeToggle.addEventListener('click', () => {
-      document.body.classList.toggle('dark-mode');
-      const enabled = document.body.classList.contains('dark-mode');
-      localStorage.setItem('darkMode', enabled ? 'enabled' : 'disabled');
-    });
-  }
-
   // ─── Seriennummer generieren & drucken ──────────────────────────────────
   const genBtn   = document.getElementById('generate-serial-btn');
   const repBtn   = document.getElementById('reprint-serial-btn');

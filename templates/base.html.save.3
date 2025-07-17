@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>InventoryApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+          <img src="{{ url_for('static', filename='img/InventoryApp.png') }}"
+               alt="Logo" height="30" class="me-2">
+          InventoryApp
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        {% if current_user.is_authenticated %}
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            {# ─── Admins sehen immer das Voll-Menü ──────────────────────── #}
+            {% if current_user.role == 'admin' %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('items') }}">Gegenstände</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('active_loans') }}">Aktive Ausleihen</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_tickets') }}">Admin-Tickets</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('users') }}">Benutzer</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_roles') }}">Rollen &amp; Berechtigungen</a></li>
+            {% else %}
+            {# ─── Andere je nach Permissions ────────────────────────────── #}
+              {% if 'view_dashboard' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+              {% endif %}
+              {% if 'view_items' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('items') }}">Gegenstände</a></li>
+              {% endif %}
+              {% if 'view_loans' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('active_loans') }}">Aktive Ausleihen</a></li>
+              {% endif %}
+              {% if 'view_own_loans' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('meine_leihgaben') }}">Meine Leihgaben</a></li>
+              {% endif %}
+              {% if 'view_own_tickets' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('my_tickets') }}">Meine Tickets</a></li>
+              {% endif %}
+              {% if 'view_tickets' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_tickets') }}">Admin-Tickets</a></li>
+              {% endif %}
+            {% endif %}
+          </ul>
+
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item me-2">
+              <button id="dark-mode-toggle" class="btn btn-sm btn-outline-light" title="Dark Mode">
+                🌙
+              </button>
+            </li>
+            <li class="nav-item me-3">
+              <span class="navbar-text">Angemeldet als {{ current_user.username }}</span>
+            </li>
+            {% if 'manage_settings' in permissions %}
+            <li class="nav-item me-2">
+              <a class="nav-link" href="{{ url_for('admin_settings') }}" title="Einstellungen">⚙️</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              {% include 
+              <a class="btn btn-outline-light" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </nav>
+
+    <div class="container">
+      {# ─── Update-Banner ──────────────────────────────────────────────── #}
+      {% if update_available %}
+        <div class="alert alert-info text-center mb-4">
+          Eine neue Version verfügbar: {{ latest_version }}!
+          <a href="https://github.com/BoondockSulfur/InventoryApp/releases/latest"
+             target="_blank" class="alert-link">Jetzt herunterladen</a>
+        </div>
+      {% endif %}
+
+      {# ─── Flash-Messages ──────────────────────────────────────────────── #}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {# ─── Content-Block ─────────────────────────────────────────────── #}
+      {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>
