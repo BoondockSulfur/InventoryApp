@@ -76,6 +76,14 @@
         <div class="d-flex align-items-center gap-3">
             Dark Mode    
             {% include '_theme_toggle.html' %}
+            {%- if current_user.is_authenticated and current_user.role == 'admin' -%}
+             <a class="btn btn-outline-secondary"
+                href="{{ url_for('admin_settings') }}"
+                title="System‑Einstellungen"
+                aria-label="System‑Einstellungen">
+             <i class="bi bi-gear-fill fs-5"></i>
+            </a>
+            {%- endif -%}
             {% if current_user.is_authenticated %}
                 <span class="navbar-text">Angemeldet als {{ current_user.username }}</span>
                 <a class="btn btn-outline-secondary" href="{{ url_for('logout') }}">Logout</a>
