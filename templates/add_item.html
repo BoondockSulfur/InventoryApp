@@ -25,14 +25,14 @@
         {{ form.serial(class="form-control", id="serial", placeholder="Seriennummer") }}
         <button
           type="button"
-          id="generate-serial"
+          id="generate-serial-btn"
           class="btn btn-outline-secondary"
         >
           Generieren &amp; Drucken
         </button>
         <button
           type="button"
-          id="reprint-serial"
+          id="reprint-serial-btn"
           class="btn btn-outline-secondary ms-2"
           style="display: none;"
         >
@@ -90,4 +90,5 @@
     </div>
   </form>
 </div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}
