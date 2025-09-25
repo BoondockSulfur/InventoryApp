@@ -40,32 +40,6 @@ Die Anwendung ermöglicht das Erfassen, Suchen und Verwalten von Artikeln – pe
 
 ### Linux / macOS / WSL
 
-```bash
-# 1) Repository klonen
-git clone https://github.com/BoondockSulfur/InventoryApp.git
-cd InventoryApp
-
-# 2) Virtuelle Umgebung anlegen
-python3 -m venv .venv
-# Falls ensurepip/venv fehlt (Ubuntu/Debian):
-#   sudo apt update && sudo apt install -y python3.12-venv
-#   rm -rf .venv && /usr/bin/python3.12 -m venv .venv
-
-# 3) Aktivieren
-source .venv/bin/activate
-
-# 4) Abhängigkeiten installieren
-python -m pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
-
-# 5) Starten (Variante A: Flask CLI)
-export FLASK_APP=app.py
-export FLASK_ENV=development    # optional für Auto-Reload & Debug
-flask run
-
-# 5) Starten (Variante B: Direkt)
-# python app.py
-
 Die Anwendung ist anschließend unter http://127.0.0.1:5000
  erreichbar.
 Alternativer Port: flask run -p 5050.
@@ -180,3 +154,29 @@ Support & Individuelle Erweiterungen
 Diese Software wird unter der MIT-Lizenz bereitgestellt (siehe unten).
 Individuelle Erweiterungen, Integrationen oder Funktionsanpassungen bieten wir auf Wunsch kostenpflichtig an – einschließlich Konzeption, Umsetzung, Tests und Deployment-Begleitung.
 Für ein Angebot bitte mit einer kurzen Anforderungsskizze und ggf. Beispiel-Workflows anfragen.
+
+```bash
+# 1) Repository klonen
+git clone https://github.com/BoondockSulfur/InventoryApp.git
+cd InventoryApp
+
+# 2) Virtuelle Umgebung anlegen
+python3 -m venv .venv
+# Falls ensurepip/venv fehlt (Ubuntu/Debian):
+#   sudo apt update && sudo apt install -y python3.12-venv
+#   rm -rf .venv && /usr/bin/python3.12 -m venv .venv
+
+# 3) Aktivieren
+source .venv/bin/activate
+
+# 4) Abhängigkeiten installieren
+python -m pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+
+# 5) Starten (Variante A: Flask CLI)
+export FLASK_APP=app.py
+export FLASK_ENV=development    # optional für Auto-Reload & Debug
+flask run
+
+# 5) Starten (Variante B: Direkt)
+python app.py
