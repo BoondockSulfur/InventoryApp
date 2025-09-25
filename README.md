@@ -179,4 +179,4 @@ export FLASK_ENV=development    # optional für Auto-Reload & Debug
 flask run
 
 # 5) Starten (Variante B: Direkt)
-python app.py
+# python app.py
