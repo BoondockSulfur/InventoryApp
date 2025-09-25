@@ -40,7 +40,7 @@ Die Anwendung ermöglicht das Erfassen, Suchen und Verwalten von Artikeln – pe
 
 ### Linux / macOS / WSL
 
-bash
+```bash
 # 1) Repository klonen
 git clone https://github.com/BoondockSulfur/InventoryApp.git
 cd InventoryApp
