@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ location.name }} - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('location_list') }}">Standorte</a></li>
+                    <li class="breadcrumb-item active">{{ location.name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('admin.edit_location', location_id=location.id) }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil"></i> Bearbeiten
+            </a>
+            <a href="{{ url_for('admin.delete_location', location_id=location.id) }}" class="btn btn-outline-danger" onclick="return confirm('Wirklich löschen?')">
+                <i class="bi bi-trash"></i> Löschen
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Hauptinformation -->
+        <div class="col-lg-8">
+            <h1 class="mb-4">
+                <i class="bi bi-geo-alt"></i> {{ location.name }}
+            </h1>
+
+            <!-- Standort-Details -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informationen</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Status:</strong>
+                                {% if location.is_active %}
+                                    <span class="badge bg-success">Aktiv</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inaktiv</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Beschreibung:</strong>
+                                <br>{{ location.description or '-' }}
+                            </p>
+                            {% if location.building or location.floor %}
+                                <p class="mb-2">
+                                    <strong>Gebäude/Etage:</strong>
+                                    <br>
+                                    {% if location.building %}{{ location.building }}{% endif %}
+                                    {% if location.floor %}, {{ location.floor }}{% endif %}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if location.address or location.postal_code or location.city %}
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-house"></i> Adresse:</strong>
+                                    <br>
+                                    {% if location.address %}{{ location.address }}<br>{% endif %}
+                                    {% if location.postal_code %}{{ location.postal_code }}{% endif %}
+                                    {% if location.city %} {{ location.city }}{% endif %}
+                                </p>
+                            {% endif %}
+                            {% if location.contact_person or location.contact_phone %}
+                                <p class="mb-0">
+                                    <strong><i class="bi bi-telephone"></i> Kontakt:</strong>
+                                    <br>
+                                    {% if location.contact_person %}{{ location.contact_person }}<br>{% endif %}
+                                    {% if location.contact_phone %}{{ location.contact_phone }}{% endif %}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Öffnungszeiten -->
+                    {% if location.opening_time or location.closing_time %}
+                        <hr>
+                        <p class="mb-0">
+                            <strong><i class="bi bi-clock"></i> Öffnungszeiten:</strong>
+                            <br>
+                            {% if location.opening_time and location.closing_time %}
+                                {{ location.opening_time.strftime('%H:%M') }} - {{ location.closing_time.strftime('%H:%M') }} Uhr
+                            {% else %}
+                                {{ location.opening_time.strftime('%H:%M') if location.opening_time else '-' }} bis {{ location.closing_time.strftime('%H:%M') if location.closing_time else '-' }}
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Grundriss/Planzeichnung -->
+            {% if location.floor_plan %}
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Grundriss</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <img src="{{ url_for('static', filename='uploads/floor_plans/' + location.floor_plan) }}"
+                                 alt="Grundriss" class="img-fluid" style="max-height: 400px;">
+                        </div>
+                        <div class="mt-2">
+                            <a href="{{ url_for('static', filename='uploads/floor_plans/' + location.floor_plan) }}"
+                               target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-fullscreen"></i> Vergrößern
+                            </a>
+                            <a href="{{ url_for('download_floor_plan', location_id=location.id) }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download"></i> Herunterladen
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Gegenstände am Standort -->
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-box"></i> Gegenstände ({{ items|length }})</h5>
+                    {% if items %}
+                        <span class="badge bg-primary">{{ items|length }}</span>
+                    {% endif %}
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Seriennummer</th>
+                                <th>Kategorie</th>
+                                <th>Status</th>
+                                <th>Besitzer</th>
+                                <th>Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if items %}
+                                {% for item in items %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td><code>{{ item.serial }}</code></td>
+                                        <td>{{ item.category or '-' }}</td>
+                                        <td>
+                                            {% if item.status == 'In Verwendung' %}
+                                                <span class="badge bg-success">In Verwendung</span>
+                                            {% elif item.status == 'Verfügbar' %}
+                                                <span class="badge bg-info">Verfügbar</span>
+                                            {% elif item.status == 'Defekt' %}
+                                                <span class="badge bg-danger">Defekt</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ item.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ item.owner or '-' }}</td>
+                                        <td>
+                                            <a href="{{ url_for('item_detail', item_id=item.id) }}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox"></i> Keine Gegenstände an diesem Standort
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Statistiken -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiken</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Gegenstände insgesamt:</span>
+                        <strong>{{ items|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>In Verwendung:</span>
+                        <strong>{{ items|selectattr('status', 'equalto', 'In Verwendung')|list|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Verfügbar:</span>
+                        <strong>{{ items|selectattr('status', 'equalto', 'Verfügbar')|list|length }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zuletzt hinzugefügt -->
+            {% if recent_items %}
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Zuletzt hinzugefügt</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for item in recent_items[:5] %}
+                            <li class="list-group-item">
+                                <small>{{ item.name }}</small>
+                                <br>
+                                <small class="text-muted">{{ item.created_at.strftime('%d.%m.%Y') if item.created_at else '' }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <!-- Aktionen -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Aktionen</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('admin.edit_location', location_id=location.id) }}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-pencil"></i> Bearbeiten
+                    </a>
+                    <a href="{{ url_for('location_detail', location_id=location.id) }}?filter=items" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-search"></i> Gegenstände filtern
+                    </a>
+                    <a href="#" class="btn btn-outline-info w-100 disabled" title="Feature wird bald verfügbar sein">
+                        <i class="bi bi-download"></i> Exportieren
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

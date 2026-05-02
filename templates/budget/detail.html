@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Budget Details - {{ budget.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="bi bi-wallet2"></i> {{ budget.name }}</h1>
+            <p class="text-muted mb-0">
+                <span class="badge bg-info">{{ budget.category }}</span>
+                {% if budget.department %}
+                    <span class="badge bg-secondary">{{ budget.department }}</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="btn-group">
+            <a href="{{ url_for('add_budget_transaction', budget_id=budget.id) }}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Transaktion hinzufügen
+            </a>
+            <a href="{{ url_for('budget_overview') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
+        </div>
+    </div>
+
+    <!-- Budget Info Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Budgetiert</h6>
+                    <h3 class="card-title mb-0">{{ "%.2f"|format(budget.allocated_amount) }} €</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Ausgegeben</h6>
+                    <h3 class="card-title mb-0 text-danger">{{ "%.2f"|format(spent_amount) }} €</h3>
+                    <small class="text-muted">{{ "%.1f"|format((spent_amount / budget.allocated_amount * 100) if budget.allocated_amount > 0 else 0) }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Verfügbar</h6>
+                    <h3 class="card-title mb-0 {% if remaining_budget < 0 %}text-danger{% else %}text-success{% endif %}">
+                        {{ "%.2f"|format(remaining_budget) }} €
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Zeitraum</h6>
+                    <p class="mb-0 small">
+                        {{ budget.start_date.strftime('%d.%m.%Y') if budget.start_date else '-' }}
+                        <br>bis<br>
+                        {{ budget.end_date.strftime('%d.%m.%Y') if budget.end_date else '-' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Budget-Nutzung</h5>
+            {% set usage_percent = (spent_amount / budget.allocated_amount * 100) if budget.allocated_amount > 0 else 0 %}
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar {% if usage_percent >= 100 %}bg-danger{% elif usage_percent >= 90 %}bg-warning{% else %}bg-success{% endif %}"
+                     role="progressbar"
+                     style="width: {{ usage_percent }}%;"
+                     aria-valuenow="{{ usage_percent }}"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                    {{ "%.1f"|format(usage_percent) }}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description -->
+    {% if budget.description %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Beschreibung</h5>
+            <p class="card-text">{{ budget.description }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Transactions Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Transaktionen ({{ transactions|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if transactions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Typ</th>
+                            <th>Beschreibung</th>
+                            <th class="text-end">Betrag</th>
+                            <th>Erstellt von</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.transaction_date.strftime('%d.%m.%Y') }}</td>
+                            <td>
+                                {% if transaction.transaction_type == 'expense' %}
+                                    <span class="badge bg-warning">Ausgabe</span>
+                                {% elif transaction.transaction_type == 'income' %}
+                                    <span class="badge bg-success">Einnahme</span>
+                                {% elif transaction.transaction_type == 'depreciation' %}
+                                    <span class="badge bg-secondary">Abschreibung</span>
+                                {% elif transaction.transaction_type == 'purchase' %}
+                                    <span class="badge bg-primary">Einkauf</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ transaction.description or '-' }}
+                                {% if transaction.reference_type == 'item' and transaction.reference_id %}
+                                    <br><small class="text-muted">
+                                        <i class="bi bi-link-45deg"></i>
+                                        <a href="{{ url_for('item_detail', item_id=transaction.reference_id) }}">Item #{{ transaction.reference_id }}</a>
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if transaction.transaction_type == 'income' %}
+                                    <span class="text-success">+{{ "%.2f"|format(transaction.amount) }} €</span>
+                                {% else %}
+                                    <span class="text-danger">-{{ "%.2f"|format(transaction.amount) }} €</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.creator %}
+                                    {{ transaction.creator.username }}
+                                {% else %}
+                                    <span class="text-muted">System</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-active fw-bold">
+                            <td colspan="3" class="text-end">Gesamt ausgegeben:</td>
+                            <td class="text-end text-danger">{{ "%.2f"|format(spent_amount) }} €</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 48px; color: #ccc;"></i>
+                <p class="text-muted mt-3">Noch keine Transaktionen vorhanden</p>
+                <a href="{{ url_for('add_budget_transaction', budget_id=budget.id) }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Erste Transaktion hinzufügen
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

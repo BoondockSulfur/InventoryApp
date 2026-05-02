@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <!-- Header with Action -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h1 class="mb-0"><i class="bi bi-ticket-perforated me-2"></i>Meine Tickets</h1>
+      <p class="text-muted">Support-Anfragen und Tickets verwalten</p>
+    </div>
+    <div class="col-md-6 text-end">
+      <a href="{{ url_for('new_ticket') }}" class="btn btn-primary btn-lg">
+        <i class="bi bi-plus-circle me-2"></i>Neues Ticket erstellen
+      </a>
+    </div>
+  </div>
+
+  {% if tickets %}
+    <!-- Tickets Grid View -->
+    <div class="row g-3">
+      {% for t in tickets %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm hover-shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <!-- Status Badge -->
+              {% if t.status == 'open' %}
+                <span class="badge bg-info"><i class="bi bi-circle-fill me-1"></i>Offen</span>
+              {% elif t.status == 'in_progress' %}
+                <span class="badge bg-warning"><i class="bi bi-arrow-repeat me-1"></i>In Bearbeitung</span>
+              {% elif t.status == 'resolved' %}
+                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Gelöst</span>
+              {% elif t.status == 'closed' %}
+                <span class="badge bg-secondary"><i class="bi bi-x-circle-fill me-1"></i>Geschlossen</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ t.status|capitalize }}</span>
+              {% endif %}
+
+              <!-- Priority Badge -->
+              {% if t.priority == 'urgent' %}
+                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Dringend</span>
+              {% elif t.priority == 'high' %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-arrow-up-circle me-1"></i>Hoch</span>
+              {% elif t.priority == 'medium' %}
+                <span class="badge bg-primary"><i class="bi bi-dash-circle me-1"></i>Mittel</span>
+              {% else %}
+                <span class="badge bg-secondary"><i class="bi bi-arrow-down-circle me-1"></i>Niedrig</span>
+              {% endif %}
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">{{ t.title }}</h5>
+              <p class="card-text text-muted small mb-2">
+                {% if t.description|length > 100 %}
+                  {{ t.description[:100] }}...
+                {% else %}
+                  {{ t.description }}
+                {% endif %}
+              </p>
+              {% if t.category %}
+                <span class="badge bg-light text-dark border me-1">
+                  <i class="bi bi-tag me-1"></i>{{ t.category }}
+                </span>
+              {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                  <i class="bi bi-clock me-1"></i>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}
+                </small>
+                <a href="{{ url_for('ticket_detail', ticket_id=t.id) }}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-eye me-1"></i>Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <!-- Empty State with Modern Design -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center py-5">
+            <div class="mb-4">
+              <i class="bi bi-ticket-perforated" style="font-size: 80px; color: #6c757d; opacity: 0.3;"></i>
+            </div>
+            <h3 class="mb-3">Keine Tickets vorhanden</h3>
+            <p class="text-muted mb-4">
+              Du hast aktuell keine Support-Tickets. Erstelle ein neues Ticket, wenn du Hilfe benötigst.
+            </p>
+            <a href="{{ url_for('new_ticket') }}" class="btn btn-primary btn-lg">
+              <i class="bi bi-plus-circle me-2"></i>Erstes Ticket erstellen
+            </a>
+
+            <!-- Quick Tips -->
+            <div class="row mt-5">
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-lightning-charge text-warning" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Schnelle Hilfe</h5>
+                  <p class="text-muted small">Beschreibe dein Problem klar und detailliert</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-clock-history text-info" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Verfolgung</h5>
+                  <p class="text-muted small">Verfolge den Status deiner Anfragen in Echtzeit</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-chat-dots text-success" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Kommunikation</h5>
+                  <p class="text-muted small">Bleibe mit dem Support-Team im Dialog</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Custom Styles -->
+<style>
+.hover-shadow {
+  transition: all 0.3s ease;
+}
+.hover-shadow:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
+{% endblock %}

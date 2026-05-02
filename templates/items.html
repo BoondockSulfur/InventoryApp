@@ -1,0 +1,524 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <!-- Header with Actions -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h1 class="mb-0"><i class="bi bi-box-seam me-2"></i>Gegenstände</h1>
+      <p class="text-muted">Inventar verwalten und organisieren</p>
+    </div>
+    <div class="col-12 col-md-6 text-md-end text-center mt-3 mt-md-0">
+      <div class="d-none d-lg-inline-flex btn-group btn-group-sm" role="group">
+        <a href="{{ url_for('export_items_csv') }}" class="btn btn-outline-primary" title="Als CSV exportieren">
+          <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+        </a>
+        <a href="{{ url_for('export_items_excel') }}" class="btn btn-outline-success" title="Als Excel exportieren">
+          <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('bulk_import_page') }}" class="btn btn-outline-info" title="Massen-Import aus CSV/Excel">
+            <i class="bi bi-upload"></i> Bulk Import
+          </a>
+        {% endif %}
+      </div>
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('add_item') }}" class="btn btn-primary btn-lg d-none d-lg-inline-flex ms-2">
+          <i class="bi bi-plus-circle me-2"></i>Neuer Gegenstand
+        </a>
+      {% endif %}
+
+      <!-- Mobile Button Layout -->
+      <div class="d-lg-none d-grid gap-2">
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('add_item') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-plus-circle me-2"></i>Neuer Gegenstand
+          </a>
+        {% endif %}
+        <div class="btn-group" role="group">
+          <a href="{{ url_for('export_items_csv') }}" class="btn btn-outline-primary btn-sm" title="Als CSV exportieren">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV
+          </a>
+          <a href="{{ url_for('export_items_excel') }}" class="btn btn-outline-success btn-sm" title="Als Excel exportieren">
+            <i class="bi bi-file-earmark-excel me-1"></i>Excel
+          </a>
+          {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('bulk_import_page') }}" class="btn btn-outline-info btn-sm" title="Massen-Import">
+              <i class="bi bi-upload me-1"></i>Import
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if items %}
+    <!-- Search and Filters -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <form method="get" action="{{ url_for('items') }}">
+          <div class="row g-3">
+            <!-- Search -->
+            <div class="col-12 col-md-4">
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input
+                  type="search"
+                  name="q"
+                  class="form-control"
+                  placeholder="Suchen nach Name, Seriennummer..."
+                  value="{{ search }}"
+                  aria-label="Suche">
+              </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="col-6 col-md-2">
+              <select name="category" class="form-select" aria-label="Kategorie filtern">
+                <option value="">Alle Kategorien</option>
+                {% for category in all_categories %}
+                  <option value="{{ category.id }}" {% if request.args.get('category') == category.id|string %}selected{% endif %}>
+                    {{ category.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Location Filter -->
+            <div class="col-6 col-md-2">
+              <select name="location" class="form-select" aria-label="Standort filtern">
+                <option value="">Alle Standorte</option>
+                {% for location in all_locations %}
+                  <option value="{{ location.id }}" {% if request.args.get('location') == location.id|string %}selected{% endif %}>
+                    {{ location.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="col-6 col-md-2">
+              <select name="status" class="form-select" aria-label="Status filtern">
+                <option value="">Alle Status</option>
+                <option value="available" {% if request.args.get('status') == 'available' %}selected{% endif %}>Verfügbar</option>
+                <option value="borrowed" {% if request.args.get('status') == 'borrowed' %}selected{% endif %}>Verliehen</option>
+                <option value="defective" {% if request.args.get('status') == 'defective' %}selected{% endif %}>Defekt</option>
+              </select>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="col-6 col-md-2">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-funnel me-1"></i>Filtern
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card border-success">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Verfügbar</h6>
+                <h3 class="mb-0">{{ items|selectattr("is_borrowed", "equalto", false)|rejectattr("defective")|list|length }}</h3>
+              </div>
+              <i class="bi bi-check-circle text-success" style="font-size: 40px; opacity: 0.5;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-warning">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Verliehen</h6>
+                <h3 class="mb-0">{{ items|selectattr("is_borrowed", "equalto", true)|rejectattr("defective")|list|length }}</h3>
+              </div>
+              <i class="bi bi-arrow-left-right text-warning" style="font-size: 40px; opacity: 0.5;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-danger">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Defekt</h6>
+                <h3 class="mb-0">{{ items|selectattr("defective")|list|length }}</h3>
+              </div>
+              <i class="bi bi-exclamation-triangle text-danger" style="font-size: 40px; opacity: 0.5;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-primary">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Gesamt</h6>
+                <h3 class="mb-0">{{ items|length }}</h3>
+              </div>
+              <i class="bi bi-boxes text-primary" style="font-size: 40px; opacity: 0.5;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Grid View -->
+    <div class="row g-3">
+      {% for itm in items %}
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm hover-shadow">
+            <!-- Card Header with Status -->
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <!-- Status Badge -->
+              {% if itm.defective %}
+                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Defekt</span>
+              {% elif itm.is_borrowed %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-arrow-left-right me-1"></i>Verliehen</span>
+              {% else %}
+                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Verfügbar</span>
+              {% endif %}
+
+              <!-- Item Icon/Image -->
+              <i class="bi bi-box text-muted" style="font-size: 24px;"></i>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body">
+              <h5 class="card-title mb-2">{{ itm.name }}</h5>
+
+              {% if itm.serial %}
+                <p class="text-muted small mb-2">
+                  <i class="bi bi-hash me-1"></i>{{ itm.serial }}
+                </p>
+              {% endif %}
+
+              {% if itm.description %}
+                <p class="card-text text-muted small mb-3">
+                  {% if itm.description|length > 80 %}
+                    {{ itm.description[:80] }}...
+                  {% else %}
+                    {{ itm.description }}
+                  {% endif %}
+                </p>
+              {% endif %}
+
+              <!-- Badges Section -->
+              <div class="d-flex flex-wrap gap-1 mb-2">
+                <!-- Category Badge -->
+                {% if itm.category_rel %}
+                  <span class="badge bg-primary">
+                    <i class="bi bi-tag-fill me-1"></i>{{ itm.category_rel.name }}
+                  </span>
+                {% endif %}
+
+                <!-- Location Badge -->
+                {% if itm.location_rel %}
+                  <span class="badge bg-info">
+                    <i class="bi bi-geo-alt-fill me-1"></i>{{ itm.location_rel.name }}
+                  </span>
+                {% endif %}
+
+                <!-- Parent Item Badge -->
+                {% if itm.parent_item %}
+                  <span class="badge bg-secondary">
+                    <i class="bi bi-diagram-3 me-1"></i>{{ itm.parent_item.name }}
+                  </span>
+                {% endif %}
+
+                <!-- Child Items Indicator -->
+                {% if itm.child_items and itm.child_items|length > 0 %}
+                  <span class="badge bg-light text-dark border" title="Hat {{ itm.child_items|length }} Untergegenstand/Untergegenstände">
+                    <i class="bi bi-collection me-1"></i>{{ itm.child_items|length }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Card Footer with Actions -->
+            <div class="card-footer bg-transparent">
+              <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                <a href="{{ url_for('item_detail', item_id=itm.id) }}" class="btn btn-sm btn-outline-primary flex-grow-1 flex-md-grow-0">
+                  <i class="bi bi-eye me-1"></i>Details
+                </a>
+
+                {% if current_user.role == 'admin' %}
+                  <div class="btn-group btn-group-sm" role="group">
+                    {% if not itm.defective and not itm.is_borrowed %}
+                      <a href="{{ url_for('loan_item', item_id=itm.id) }}" class="btn btn-outline-secondary" title="Ausleihen">
+                        <i class="bi bi-box-arrow-right"></i>
+                      </a>
+                    {% endif %}
+                    <a href="{{ url_for('edit_item', item_id=itm.id) }}" class="btn btn-outline-secondary" title="Bearbeiten">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button type="button"
+                            class="btn btn-outline-danger"
+                            title="Löschen"
+                            onclick="deleteItem({{ itm.id }}, '{{ itm.name }}')">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination and pagination.pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('items', page=pagination.prev_num, q=search) }}">
+            <i class="bi bi-chevron-left"></i> Zurück
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link"><i class="bi bi-chevron-left"></i> Zurück</span>
+        </li>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if page_num %}
+            {% if page_num == pagination.page %}
+            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('items', page=page_num, q=search) }}">{{ page_num }}</a></li>
+            {% endif %}
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('items', page=pagination.next_num, q=search) }}">
+            Weiter <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Weiter <i class="bi bi-chevron-right"></i></span>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+
+  {% else %}
+    <!-- Empty State with Modern Design -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center py-5">
+            <div class="mb-4">
+              <i class="bi bi-box-seam" style="font-size: 80px; color: #6c757d; opacity: 0.3;"></i>
+            </div>
+            <h3 class="mb-3">Keine Gegenstände vorhanden</h3>
+            <p class="text-muted mb-4">
+              Dein Inventar ist aktuell leer. Füge deinen ersten Gegenstand hinzu, um mit der Verwaltung zu beginnen.
+            </p>
+            {% if current_user.role == 'admin' %}
+              <div class="d-flex justify-content-center gap-2 mb-5">
+                <a href="{{ url_for('add_item') }}" class="btn btn-primary btn-lg">
+                  <i class="bi bi-plus-circle me-2"></i>Ersten Gegenstand hinzufügen
+                </a>
+                <a href="{{ url_for('bulk_import_page') }}" class="btn btn-outline-primary btn-lg">
+                  <i class="bi bi-upload me-2"></i>Bulk Import
+                </a>
+              </div>
+            {% endif %}
+
+            <!-- Quick Tips -->
+            <div class="row mt-5">
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-tags text-primary" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Kategorien</h5>
+                  <p class="text-muted small">Organisiere deine Gegenstände mit benutzerdefinierten Kategorien</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-geo-alt text-info" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Standorte</h5>
+                  <p class="text-muted small">Weise jedem Gegenstand einen Standort zu und behalte den Überblick</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-diagram-3 text-success" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Hierarchie</h5>
+                  <p class="text-muted small">Erstelle Beziehungen zwischen Gegenständen für bessere Organisation</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Features -->
+            <div class="row mt-4">
+              <div class="col-md-3">
+                <div class="p-2">
+                  <i class="bi bi-arrow-left-right text-warning" style="font-size: 24px;"></i>
+                  <p class="text-muted small mt-1 mb-0">Ausleihe-Verwaltung</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-2">
+                  <i class="bi bi-qr-code text-secondary" style="font-size: 24px;"></i>
+                  <p class="text-muted small mt-1 mb-0">QR-Code & Barcode</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-2">
+                  <i class="bi bi-calendar-check text-info" style="font-size: 24px;"></i>
+                  <p class="text-muted small mt-1 mb-0">Reservierungen</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-2">
+                  <i class="bi bi-tools text-danger" style="font-size: 24px;"></i>
+                  <p class="text-muted small mt-1 mb-0">Wartung & Defekte</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Gegenstand löschen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Möchtest du den Gegenstand "<strong id="deleteItemName"></strong>" wirklich löschen?
+        <p class="text-danger small mt-2 mb-0">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <form id="deleteForm" method="post" action="" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i>Löschen
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+.hover-shadow {
+  transition: all 0.3s ease;
+}
+.hover-shadow:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-header {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.badge {
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.btn-group .btn {
+  padding: 0.25rem 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+  .card-title {
+    font-size: 1rem;
+  }
+
+  .statistics-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card-footer {
+    padding: 0.75rem 1rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .form-control, .form-select {
+    min-height: 44px;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .input-group-text {
+    min-height: 44px;
+  }
+}
+</style>
+
+<!-- Custom Scripts -->
+<script>
+let deleteModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Bootstrap modal
+  const deleteModalElement = document.getElementById('deleteModal');
+  if (deleteModalElement) {
+    deleteModal = new bootstrap.Modal(deleteModalElement);
+  }
+});
+
+function deleteItem(itemId, itemName) {
+  // Set the item name in the modal
+  document.getElementById('deleteItemName').textContent = itemName;
+
+  // Set the form action URL
+  const form = document.getElementById('deleteForm');
+  form.action = `/items/${itemId}/delete`;
+
+  // Show the modal
+  if (deleteModal) {
+    deleteModal.show();
+  }
+}
+</script>
+
+{% endblock %}

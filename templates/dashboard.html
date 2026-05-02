@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid mt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
+      <p class="text-muted">Übersicht über dein Inventar</p>
+    </div>
+    <div class="col-12 col-md-4 text-md-end text-center mt-3 mt-md-0">
+      <div class="btn-group btn-group-sm d-none d-md-inline-flex" role="group">
+        <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i>Gegenstand
+        </a>
+        <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-primary">
+          <i class="bi bi-folder me-1"></i>Kategorien
+        </a>
+        <a href="{{ url_for('admin.locations') }}" class="btn btn-outline-primary">
+          <i class="bi bi-geo-alt me-1"></i>Standorte
+        </a>
+      </div>
+      <div class="d-grid gap-2 d-md-none">
+        <a href="{{ url_for('add_item') }}" class="btn btn-primary btn-lg">
+          <i class="bi bi-plus-circle me-2"></i>Gegenstand
+        </a>
+        <div class="btn-group" role="group">
+          <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-primary">
+            <i class="bi bi-folder me-1"></i>Kategorien
+          </a>
+          <a href="{{ url_for('admin.locations') }}" class="btn btn-outline-primary">
+            <i class="bi bi-geo-alt me-1"></i>Standorte
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <a href="{{ url_for('items') }}" class="text-decoration-none">
+        <div class="card border-0 shadow-sm hover-card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                  <i class="bi bi-box-seam text-primary" style="font-size: 28px;"></i>
+                </div>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="text-muted mb-1">Gegenstände</h6>
+                <h2 class="mb-0">{{ total_items }}</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <a href="{{ url_for('active_loans') }}" class="text-decoration-none">
+        <div class="card border-0 shadow-sm hover-card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                  <i class="bi bi-arrow-left-right text-warning" style="font-size: 28px;"></i>
+                </div>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="text-muted mb-1">Verliehen</h6>
+                <h2 class="mb-0">{{ borrowed_items }}</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <a href="{{ url_for('active_loans') }}" class="text-decoration-none">
+        <div class="card border-0 shadow-sm hover-card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+                  <i class="bi bi-exclamation-triangle text-danger" style="font-size: 28px;"></i>
+                </div>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="text-muted mb-1">Überfällig</h6>
+                <h2 class="mb-0">{{ overdue_loans|length }}</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <a href="{{ url_for('items', status='available') }}" class="text-decoration-none">
+        <div class="card border-0 shadow-sm hover-card">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-shrink-0 me-3">
+                <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                  <i class="bi bi-check-circle text-success" style="font-size: 28px;"></i>
+                </div>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="text-muted mb-1">Verfügbar</h6>
+                <h2 class="mb-0">{{ total_items - borrowed_items }}</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Overdue Loans Section -->
+  {% if overdue_loans %}
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Überfällige Ausleihen ({{ overdue_loans|length }})</h5>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th><i class="bi bi-box me-1"></i>Gegenstand</th>
+                    <th class="d-none d-md-table-cell"><i class="bi bi-person me-1"></i>Entleiher</th>
+                    <th class="d-none d-lg-table-cell"><i class="bi bi-calendar-x me-1"></i>Fällig seit</th>
+                    <th class="d-none d-lg-table-cell"><i class="bi bi-clock me-1"></i>Überfällig</th>
+                    <th>Aktion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for loan in overdue_loans %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('item_detail', item_id=loan.item.id) }}" class="text-decoration-none">
+                        <strong>{{ loan.item.name }}</strong><br>
+                        <small class="text-muted d-none d-sm-inline">{{ loan.item.serial }}</small>
+                        <div class="d-md-none mt-1">
+                          <small class="text-muted d-block">
+                            <i class="bi bi-person me-1"></i>{{ loan.borrower.name }}
+                          </small>
+                          <span class="badge bg-danger">{{ loan.due_date.strftime('%d.%m.%Y') }}</span>
+                        </div>
+                      </a>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                      {{ loan.borrower.name }}<br>
+                      <small class="text-muted">{{ loan.borrower.email }}</small>
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                      <span class="badge bg-danger">
+                        {{ loan.due_date.strftime('%d.%m.%Y') }}
+                      </span>
+                    </td>
+                    <td class="d-none d-lg-table-cell">
+                      {% set days_overdue = (loan.due_date - loan.loan_date).days %}
+                      <span class="text-danger">
+                        <strong>{{ days_overdue }} Tage</strong>
+                      </span>
+                    </td>
+                    <td>
+                      <a href="{{ url_for('item_detail', item_id=loan.item.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>Details
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Quick Actions -->
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0"><i class="bi bi-lightning-fill text-warning me-2"></i>Schnellaktionen</h5>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            <a href="{{ url_for('add_item') }}" class="list-group-item list-group-item-action border-0">
+              <i class="bi bi-plus-circle text-primary me-2"></i>Neuen Gegenstand hinzufügen
+            </a>
+            <a href="{{ url_for('items') }}" class="list-group-item list-group-item-action border-0">
+              <i class="bi bi-search text-info me-2"></i>Gegenstände durchsuchen
+            </a>
+            <a href="{{ url_for('active_loans') }}" class="list-group-item list-group-item-action border-0">
+              <i class="bi bi-arrow-left-right text-warning me-2"></i>Aktive Ausleihen anzeigen
+            </a>
+            <a href="{{ url_for('admin.categories') }}" class="list-group-item list-group-item-action border-0">
+              <i class="bi bi-folder text-success me-2"></i>Kategorien verwalten
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0"><i class="bi bi-info-circle text-info me-2"></i>System-Info</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-3">
+            <span class="text-muted">Verfügbarkeit</span>
+            <strong>{{ ((total_items - borrowed_items) / total_items * 100)|round(1) if total_items > 0 else 0 }}%</strong>
+          </div>
+          <div class="progress mb-3" style="height: 8px;">
+            <div class="progress-bar bg-success" role="progressbar"
+                 style="width: {{ ((total_items - borrowed_items) / total_items * 100)|round(1) if total_items > 0 else 0 }}%"></div>
+          </div>
+
+          <div class="d-flex justify-content-between mb-3">
+            <span class="text-muted">Auslastung</span>
+            <strong>{{ (borrowed_items / total_items * 100)|round(1) if total_items > 0 else 0 }}%</strong>
+          </div>
+          <div class="progress mb-3" style="height: 8px;">
+            <div class="progress-bar bg-warning" role="progressbar"
+                 style="width: {{ (borrowed_items / total_items * 100)|round(1) if total_items > 0 else 0 }}%"></div>
+          </div>
+
+          {% if overdue_loans %}
+          <div class="alert alert-danger mb-0">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>{{ overdue_loans|length }}</strong> überfällige Ausleihe(n) erfordern Aufmerksamkeit
+          </div>
+          {% else %}
+          <div class="alert alert-success mb-0">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            Alle Ausleihen sind im grünen Bereich
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.hover-card {
+  transition: all 0.3s ease;
+}
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 767.98px) {
+  .card-body {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .list-group-item {
+    padding: 1rem;
+    min-height: 48px;
+  }
+
+  .table {
+    font-size: 0.875rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.375em 0.625em;
+  }
+}
+</style>
+{% endblock %}

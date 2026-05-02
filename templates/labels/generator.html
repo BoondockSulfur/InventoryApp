@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Label Generator - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-tag"></i> Professioneller Label Generator</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Linke Seite: Einstellungen -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-cog"></i> Label-Einstellungen</h5>
+                </div>
+                <div class="card-body">
+                    <form id="labelForm">
+                        <!-- Label-Typ -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Label-Typ</label>
+                            <select class="form-select" id="labelType">
+                                <option value="item">Artikel-Label (QR + Barcode + Details)</option>
+                                <option value="qr">Einfaches QR-Code Label</option>
+                                <option value="barcode">Barcode-Label</option>
+                            </select>
+                        </div>
+
+                        <!-- Label-Größe -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Label-Größe</label>
+                            <select class="form-select" id="labelSize">
+                                {% for key, size in label_sizes.items() %}
+                                <option value="{{ key }}" {% if key == 'medium' %}selected{% endif %}>
+                                    {{ size.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Artikel-Label Optionen -->
+                        <div id="itemLabelOptions">
+                            <hr>
+                            <h6 class="fw-bold">Artikel-Daten</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Artikel-ID / Name</label>
+                                <input type="text" class="form-control" id="itemId" placeholder="12345">
+                                <small class="text-muted">Artikel-ID aus der Datenbank</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" id="itemName" placeholder="MacBook Pro 16">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Seriennummer</label>
+                                <input type="text" class="form-control" id="itemSerial" placeholder="SN123456">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Kategorie</label>
+                                <input type="text" class="form-control" id="itemCategory" placeholder="Elektronik">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Standort</label>
+                                <input type="text" class="form-control" id="itemLocation" placeholder="Raum 101">
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeQr" checked>
+                                    <label class="form-check-label" for="includeQr">
+                                        QR-Code einbinden
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeBarcode" checked
+                                           {% if not barcode_available %}disabled{% endif %}>
+                                    <label class="form-check-label" for="includeBarcode">
+                                        Barcode einbinden
+                                        {% if not barcode_available %}
+                                        <span class="badge bg-warning text-dark">Nicht verfügbar</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- QR-Label Optionen -->
+                        <div id="qrLabelOptions" style="display: none;">
+                            <hr>
+                            <h6 class="fw-bold">QR-Code Daten</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Titel (optional)</label>
+                                <input type="text" class="form-control" id="qrTitle" placeholder="Inventar-Label">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">QR-Code Inhalt</label>
+                                <textarea class="form-control" id="qrData" rows="4"
+                                          placeholder="Text, URL oder JSON-Daten für QR-Code"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Barcode-Label Optionen -->
+                        <div id="barcodeLabelOptions" style="display: none;">
+                            <hr>
+                            <h6 class="fw-bold">Barcode Einstellungen</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Titel (optional)</label>
+                                <input type="text" class="form-control" id="barcodeTitle" placeholder="Artikel-Code">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Barcode-Wert</label>
+                                <input type="text" class="form-control" id="barcodeValue" placeholder="123456789">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Barcode-Typ</label>
+                                <select class="form-select" id="barcodeType">
+                                    <option value="code128">Code 128 (Standard)</option>
+                                    <option value="code39">Code 39</option>
+                                    <option value="ean13">EAN-13</option>
+                                    <option value="ean8">EAN-8</option>
+                                    <option value="upca">UPC-A</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <button type="submit" class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-magic"></i> Label Generieren
+                        </button>
+
+                        <button type="button" class="btn btn-secondary w-100" id="printBtn" disabled>
+                            <i class="fas fa-print"></i> Label Drucken
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rechte Seite: Vorschau -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-eye"></i> Vorschau</h5>
+                </div>
+                <div class="card-body">
+                    <div id="labelPreview" class="text-center p-4" style="background: #f8f9fa; min-height: 400px;">
+                        <div class="text-muted">
+                            <i class="fas fa-image fa-4x mb-3"></i>
+                            <p>Wählen Sie die Einstellungen und klicken Sie auf "Label Generieren"</p>
+                        </div>
+                    </div>
+
+                    <div id="labelInfo" class="mt-3" style="display: none;">
+                        <small class="text-muted">
+                            Größe: <span id="labelDimensions"></span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schnellzugriff auf Artikel -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-boxes"></i> Schnellzugriff: Label für vorhandenen Artikel</h6>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="quickItemId" placeholder="Artikel-ID eingeben">
+                        <button class="btn btn-primary" id="loadItemBtn">
+                            <i class="fas fa-download"></i> Artikel laden
+                        </button>
+                        <button class="btn btn-success" id="quickGenerateBtn">
+                            <i class="fas fa-bolt"></i> Direkt generieren
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+#labelPreview img {
+    max-width: 100%;
+    height: auto;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+let currentLabelImage = null;
+
+// Label-Typ Wechsel
+document.getElementById('labelType').addEventListener('change', function() {
+    const type = this.value;
+    document.getElementById('itemLabelOptions').style.display = type === 'item' ? 'block' : 'none';
+    document.getElementById('qrLabelOptions').style.display = type === 'qr' ? 'block' : 'none';
+    document.getElementById('barcodeLabelOptions').style.display = type === 'barcode' ? 'block' : 'none';
+});
+
+// Label generieren
+document.getElementById('labelForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const labelType = document.getElementById('labelType').value;
+    const labelSize = document.getElementById('labelSize').value;
+
+    let requestData = {
+        type: labelType,
+        size: labelSize
+    };
+
+    // Je nach Typ Daten sammeln
+    if (labelType === 'item') {
+        requestData.item_data = {
+            id: document.getElementById('itemId').value,
+            name: document.getElementById('itemName').value,
+            serial: document.getElementById('itemSerial').value || null,
+            category: document.getElementById('itemCategory').value || null,
+            location: document.getElementById('itemLocation').value || null,
+            barcode_value: document.getElementById('itemId').value
+        };
+        requestData.include_qr = document.getElementById('includeQr').checked;
+        requestData.include_barcode = document.getElementById('includeBarcode').checked;
+    } else if (labelType === 'qr') {
+        requestData.title = document.getElementById('qrTitle').value || null;
+        requestData.qr_data = document.getElementById('qrData').value;
+    } else if (labelType === 'barcode') {
+        requestData.title = document.getElementById('barcodeTitle').value || null;
+        requestData.barcode_value = document.getElementById('barcodeValue').value;
+        requestData.barcode_type = document.getElementById('barcodeType').value;
+    }
+
+    try {
+        const response = await fetch('/labels/api/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            currentLabelImage = result.image;
+            document.getElementById('labelPreview').innerHTML =
+                `<img src="${result.image}" alt="Generated Label">`;
+            document.getElementById('labelDimensions').textContent =
+                `${result.width}px x ${result.height}px`;
+            document.getElementById('labelInfo').style.display = 'block';
+            document.getElementById('printBtn').disabled = false;
+        } else {
+            alert('Fehler beim Generieren: ' + result.error);
+        }
+    } catch (error) {
+        alert('Fehler: ' + error.message);
+    }
+});
+
+// Drucken
+document.getElementById('printBtn').addEventListener('click', function() {
+    if (currentLabelImage) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Label Drucken</title>
+                <style>
+                    @media print {
+                        @page { margin: 0; }
+                        body { margin: 0; }
+                        img { max-width: 100%; height: auto; }
+                    }
+                </style>
+            </head>
+            <body>
+                <img src="${currentLabelImage}" onload="window.print(); window.close();">
+            </body>
+            </html>
+        `);
+    }
+});
+
+// Artikel laden
+document.getElementById('loadItemBtn').addEventListener('click', async function() {
+    const itemId = document.getElementById('quickItemId').value;
+    if (!itemId) {
+        alert('Bitte Artikel-ID eingeben');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/items/${itemId}`);
+        const item = await response.json();
+
+        if (item) {
+            document.getElementById('labelType').value = 'item';
+            document.getElementById('labelType').dispatchEvent(new Event('change'));
+
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemSerial').value = item.serial_number || '';
+            document.getElementById('itemCategory').value = item.category || '';
+            document.getElementById('itemLocation').value = item.location || '';
+
+            alert('Artikel-Daten geladen!');
+        }
+    } catch (error) {
+        alert('Fehler beim Laden: ' + error.message);
+    }
+});
+
+// Schnell generieren
+document.getElementById('quickGenerateBtn').addEventListener('click', async function() {
+    const itemId = document.getElementById('quickItemId').value;
+    if (!itemId) {
+        alert('Bitte Artikel-ID eingeben');
+        return;
+    }
+
+    const labelSize = document.getElementById('labelSize').value;
+    const url = `/labels/api/generate-item/${itemId}?size=${labelSize}&qr=1&barcode=1`;
+
+    window.open(url, '_blank');
+});
+
+// Seriennummer aus URL-Parameter übernehmen (wenn von add_item.html weitergeleitet)
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const serial = urlParams.get('serial');
+
+    if (serial) {
+        const serialInput = document.getElementById('itemSerial');
+        if (serialInput) {
+            serialInput.value = serial;
+            // Highlight the field to show it was pre-filled
+            serialInput.classList.add('border-success');
+            setTimeout(() => {
+                serialInput.classList.remove('border-success');
+            }, 2000);
+        }
+    }
+});
+</script>
+{% endblock %}

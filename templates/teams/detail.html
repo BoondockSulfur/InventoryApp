@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ team.name }} - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('team_list') }}">Teams</a></li>
+                    <li class="breadcrumb-item active">{{ team.name }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('edit_team', team_id=team.id) }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil"></i> Bearbeiten
+            </a>
+            <a href="{{ url_for('delete_team', team_id=team.id) }}" class="btn btn-outline-danger" onclick="return confirm('Wirklich löschen?')">
+                <i class="bi bi-trash"></i> Löschen
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Hauptinformation -->
+        <div class="col-lg-8">
+            <h1 class="mb-4">
+                <i class="bi bi-diagram-3"></i> {{ team.name }}
+            </h1>
+
+            <!-- Team-Details -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informationen</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Abteilung:</strong>
+                                <br>{{ team.department or '-' }}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Teamleiter:</strong>
+                                <br>
+                                {% if team.team_lead %}
+                                    <span class="badge bg-primary">{{ team.team_lead }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Status:</strong>
+                                <br>
+                                {% if team.is_active %}
+                                    <span class="badge bg-success">Aktiv</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inaktiv</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Erstellt am:</strong>
+                                <br>
+                                {{ team.created_at.strftime('%d.%m.%Y') if team.created_at else 'N/A' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if team.description %}
+                        <hr>
+                        <p class="mb-0">
+                            <strong>Beschreibung:</strong>
+                            <br>{{ team.description }}
+                        </p>
+                    {% endif %}
+
+                    {% if team.email or team.phone %}
+                        <hr>
+                        <p class="mb-0">
+                            <strong>Kontakt:</strong>
+                            <br>
+                            {% if team.email %}
+                                <i class="bi bi-envelope"></i> {{ team.email }}<br>
+                            {% endif %}
+                            {% if team.phone %}
+                                <i class="bi bi-telephone"></i> {{ team.phone }}
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mitglieder -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people"></i> Mitglieder ({{ members|length }})
+                    </h5>
+                    <a href="{{ url_for('add_team_member', team_id=team.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Hinzufügen
+                    </a>
+                </div>
+                {% if members %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>E-Mail</th>
+                                    <th>Rolle</th>
+                                    <th>Beigetreten am</th>
+                                    <th>Status</th>
+                                    <th>Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in members %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ member.user.username or member.user.email }}</strong>
+                                        </td>
+                                        <td>{{ member.user.email or '-' }}</td>
+                                        <td>
+                                            {% if member.role == 'Teamleiter' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-star"></i> {{ member.role }}
+                                                </span>
+                                            {% elif member.role == 'Moderator' %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-gear"></i> {{ member.role }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-info">{{ member.role }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ member.joined_at.strftime('%d.%m.%Y') if member.joined_at else '-' }}</td>
+                                        <td>
+                                            {% if member.is_active %}
+                                                <span class="badge bg-success">Aktiv</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inaktiv</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('edit_team_member', team_id=team.id, member_id=member.id) }}"
+                                               class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i> Bearbeiten
+                                            </a>
+                                            <a href="{{ url_for('remove_team_member', team_id=team.id, member_id=member.id) }}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('Mitglied wirklich entfernen?')">
+                                                <i class="bi bi-trash"></i> Entfernen
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="card-body text-center text-muted py-4">
+                        <i class="bi bi-inbox"></i>
+                        <p class="mb-0 mt-2">Keine Mitglieder im Team</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Berechtigungen -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Team-Berechtigungen</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Kann Gegenstände ansehen:</strong>
+                                <br>
+                                {% if team.can_view_all %}
+                                    <span class="badge bg-success">Ja</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Nein</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Kann Gegenstände bearbeiten:</strong>
+                                <br>
+                                {% if team.can_edit_all %}
+                                    <span class="badge bg-success">Ja</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Nein</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Kann Gegenstände löschen:</strong>
+                                <br>
+                                {% if team.can_delete_all %}
+                                    <span class="badge bg-success">Ja</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Nein</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Kann Team verwalten:</strong>
+                                <br>
+                                {% if team.can_manage_team %}
+                                    <span class="badge bg-success">Ja</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Nein</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Statistiken -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiken</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Anzahl Mitglieder:</span>
+                        <strong>{{ members|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Aktive Mitglieder:</span>
+                        <strong>{{ members|selectattr('is_active')|list|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Inaktive Mitglieder:</span>
+                        <strong>{{ members|rejectattr('is_active')|list|length }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rollen-Übersicht -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Rollen-Verteilung</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><i class="bi bi-star"></i> Teamleiter:</span>
+                        <strong>{{ members|selectattr('role', 'equalto', 'Teamleiter')|list|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><i class="bi bi-gear"></i> Moderator:</span>
+                        <strong>{{ members|selectattr('role', 'equalto', 'Moderator')|list|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-person"></i> Mitglieder:</span>
+                        <strong>{{ members|selectattr('role', 'equalto', 'Mitglied')|list|length }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schnelle Aktionen -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Aktionen</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('edit_team', team_id=team.id) }}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-pencil"></i> Team bearbeiten
+                    </a>
+                    <a href="{{ url_for('add_team_member', team_id=team.id) }}" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-plus-circle"></i> Mitglied hinzufügen
+                    </a>
+                    <a href="{{ url_for('export_team_members', team_id=team.id) }}" class="btn btn-outline-info w-100">
+                        <i class="bi bi-download"></i> Exportieren
+                    </a>
+                </div>
+            </div>
+
+            <!-- Audit-Info -->
+            <div class="card bg-light">
+                <div class="card-body small">
+                    <p class="mb-1">
+                        <strong>Erstellt:</strong>
+                        {{ team.created_at.strftime('%d.%m.%Y %H:%M') if team.created_at else 'N/A' }}
+                    </p>
+                    <p class="mb-0">
+                        <strong>Aktualisiert:</strong>
+                        {{ team.updated_at.strftime('%d.%m.%Y %H:%M') if team.updated_at else 'N/A' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

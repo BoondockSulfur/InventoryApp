@@ -1,0 +1,1614 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid mt-4">
+  <h1 class="mb-4">
+    <i class="bi bi-gear-fill"></i> Systemeinstellungen
+  </h1>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
+        <i class="bi bi-house"></i> Allgemein
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab">
+        <i class="bi bi-envelope"></i> E-Mail
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
+        <i class="bi bi-bell"></i> Benachrichtigungen
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="ldap-tab" data-bs-toggle="tab" data-bs-target="#ldap" type="button" role="tab">
+        <i class="bi bi-diagram-3"></i> LDAP
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="scanner-tab" data-bs-toggle="tab" data-bs-target="#scanner" type="button" role="tab">
+        <i class="bi bi-qr-code-scan"></i> Scanner
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button" role="tab">
+        <i class="bi bi-tools"></i> Wartung
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="budget-tab" data-bs-toggle="tab" data-bs-target="#budget" type="button" role="tab">
+        <i class="bi bi-cash-coin"></i> Budget
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+        <i class="bi bi-shield-lock"></i> Sicherheit
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" type="button" role="tab">
+        <i class="bi bi-archive"></i> Backup
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="import-tab" data-bs-toggle="tab" data-bs-target="#import" type="button" role="tab">
+        <i class="bi bi-file-earmark-arrow-down"></i> Import/Export
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="modules-tab" data-bs-toggle="tab" data-bs-target="#modules" type="button" role="tab">
+        <i class="bi bi-grid-3x3-gap"></i> Module
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="auth-tab" data-bs-toggle="tab" data-bs-target="#auth" type="button" role="tab">
+        <i class="bi bi-shield-lock"></i> Authentifizierung
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">
+        <i class="bi bi-journal-text"></i> Logs
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="ml-tab" data-bs-toggle="tab" data-bs-target="#ml" type="button" role="tab">
+        <i class="bi bi-robot"></i> ML/KI
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="updates-tab" data-bs-toggle="tab" data-bs-target="#updates" type="button" role="tab">
+        <i class="bi bi-arrow-repeat"></i> System-Updates
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content border border-top-0 p-4 bg-white" id="settingsTabContent">
+
+    <!-- Tab: Allgemein -->
+    <div class="tab-pane fade show active" id="general" role="tabpanel">
+      <h4>Allgemeine Einstellungen</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="general">
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">App-Name</label>
+              <input type="text" class="form-control" name="app_name" value="{{ settings.get('APP_NAME', 'InventoryApp') }}">
+              <small class="text-muted">Name der Anwendung (erscheint im Titel)</small>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">Sprache</label>
+              <select class="form-select" name="language">
+                <option value="de" {% if settings.get('LANGUAGE', 'de') == 'de' %}selected{% endif %}>Deutsch</option>
+                <option value="en" {% if settings.get('LANGUAGE') == 'en' %}selected{% endif %}>English</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Base URL</label>
+          <input type="url" class="form-control" name="base_url" value="{{ settings.get('BASE_URL', '') }}" placeholder="https://inventory.example.com">
+          <small class="text-muted">Basis-URL für QR-Codes und E-Mail-Links</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Zeitzone</label>
+          <select class="form-select" name="timezone">
+            <option value="Europe/Berlin" {% if settings.get('TIMEZONE', 'Europe/Berlin') == 'Europe/Berlin' %}selected{% endif %}>Europe/Berlin (CET/CEST)</option>
+            <option value="UTC" {% if settings.get('TIMEZONE') == 'UTC' %}selected{% endif %}>UTC</option>
+          </select>
+        </div>
+
+        <hr class="my-4">
+        <h5>Multi-Mandanten-Fähigkeit</h5>
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i> Ermöglicht die Verwaltung mehrerer Organisationen/Firmen in einer Installation.
+          Benutzer und Gegenstände werden dann einer spezifischen Organisation zugeordnet.
+        </div>
+
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="enable_multi_company" name="enable_multi_company"
+                 {% if settings.get('ENABLE_MULTI_COMPANY', 'false') == 'true' %}checked{% endif %}>
+          <label class="form-check-label fw-bold" for="enable_multi_company">
+            Multi-Company Modus aktivieren
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: E-Mail -->
+    <div class="tab-pane fade" id="email" role="tabpanel">
+      <h4>E-Mail-Einstellungen (SMTP)</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="email">
+
+        <div class="row">
+          <div class="col-md-8">
+            {{ form.mail_server.label(class="form-label") }}
+            {{ form.mail_server(class="form-control mb-3") }}
+          </div>
+          <div class="col-md-4">
+            {{ form.mail_port.label(class="form-label") }}
+            {{ form.mail_port(class="form-control mb-3") }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="form-check">
+            {{ form.mail_use_tls(class="form-check-input") }}
+            {{ form.mail_use_tls.label(class="form-check-label") }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            {{ form.mail_username.label(class="form-label") }}
+            {{ form.mail_username(class="form-control mb-3") }}
+          </div>
+          <div class="col-md-6">
+            {{ form.mail_password.label(class="form-label") }}
+            {{ form.mail_password(class="form-control mb-3", placeholder="Passwort eingeben...", autocomplete="current-password") }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          {{ form.admins.label(class="form-label") }}
+          {{ form.admins(class="form-control") }}
+          <small class="text-muted">E-Mail-Adressen der Administratoren (mit „;" getrennt)</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+        <button type="button" class="btn btn-outline-secondary" onclick="testEmail()">
+          <i class="bi bi-envelope-check"></i> Test-E-Mail senden
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Benachrichtigungen -->
+    <div class="tab-pane fade" id="notifications" role="tabpanel">
+      <h4>Benachrichtigungen (Slack/Teams)</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="notifications">
+
+        <div class="mb-4">
+          <h6><i class="bi bi-slack"></i> Slack Integration</h6>
+          <div class="mb-3">
+            <label class="form-label">Slack Webhook URL</label>
+            <input type="url" class="form-control" name="slack_webhook" value="{{ settings.get('SLACK_WEBHOOK', '') }}" placeholder="https://hooks.slack.com/services/...">
+            <small class="text-muted">Webhook-URL von Slack für Benachrichtigungen</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Slack Channel</label>
+            <input type="text" class="form-control" name="slack_channel" value="{{ settings.get('SLACK_CHANNEL', '#general') }}" placeholder="#inventory">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h6><i class="bi bi-microsoft-teams"></i> Microsoft Teams Integration</h6>
+          <div class="mb-3">
+            <label class="form-label">Teams Webhook URL</label>
+            <input type="url" class="form-control" name="teams_webhook" value="{{ settings.get('TEAMS_WEBHOOK', '') }}" placeholder="https://outlook.office.com/webhook/...">
+            <small class="text-muted">Webhook-URL von Teams für Benachrichtigungen</small>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <h6>Benachrichtigungs-Ereignisse</h6>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="notify_new_items" {% if settings.get('NOTIFY_NEW_ITEMS', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Neue Items</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="notify_loans" {% if settings.get('NOTIFY_LOANS', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Ausleihen & Rückgaben</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="notify_maintenance" {% if settings.get('NOTIFY_MAINTENANCE', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Fällige Wartungen</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="notify_tickets" {% if settings.get('NOTIFY_TICKETS', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Neue Tickets</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: LDAP -->
+    <div class="tab-pane fade" id="ldap" role="tabpanel">
+      <h4>LDAP-Integration</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="ldap">
+
+        <div class="mb-3">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="ldap_enabled" {% if settings.get('LDAP_ENABLED', 'false') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">LDAP aktivieren</label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-8">
+            <div class="mb-3">
+              <label class="form-label">LDAP Server</label>
+              <input type="text" class="form-control" name="ldap_server" value="{{ settings.get('LDAP_SERVER', '') }}" placeholder="ldap://ldap.example.com">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label">Port</label>
+              <input type="number" class="form-control" name="ldap_port" value="{{ settings.get('LDAP_PORT', '389') }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Base DN</label>
+          <input type="text" class="form-control" name="ldap_base_dn" value="{{ settings.get('LDAP_BASE_DN', '') }}" placeholder="dc=example,dc=com">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Bind DN</label>
+          <input type="text" class="form-control" name="ldap_bind_dn" value="{{ settings.get('LDAP_BIND_DN', '') }}" placeholder="cn=admin,dc=example,dc=com">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Bind Passwort</label>
+          <input type="password" class="form-control" name="ldap_bind_password" placeholder="Passwort eingeben..." autocomplete="current-password">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">User Filter</label>
+          <input type="text" class="form-control" name="ldap_user_filter" value="{{ settings.get('LDAP_USER_FILTER', '(uid=%s)') }}" placeholder="(uid=%s)">
+          <small class="text-muted">%s wird durch den Benutzernamen ersetzt</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+        <button type="button" class="btn btn-outline-secondary">
+          <i class="bi bi-plug"></i> Verbindung testen
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Scanner -->
+    <div class="tab-pane fade" id="scanner" role="tabpanel">
+      <h4>Scanner-Einstellungen (QR/Barcode/RFID)</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="scanner">
+
+        <div class="mb-4">
+          <h6><i class="bi bi-printer"></i> Drucker für Labels</h6>
+          <div class="row">
+            <div class="col-md-8">
+              {{ form.printer_ip.label(class="form-label") }}
+              {{ form.printer_ip(class="form-control") }}
+            </div>
+            <div class="col-md-4">
+              {{ form.printer_port.label(class="form-label") }}
+              {{ form.printer_port(class="form-control") }}
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <h6>Scanner-Typen aktivieren</h6>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="enable_qr" {% if settings.get('ENABLE_QR', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">QR-Code Scanner</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="enable_barcode" {% if settings.get('ENABLE_BARCODE', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Barcode Scanner</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="enable_rfid" {% if settings.get('ENABLE_RFID', 'false') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">RFID Scanner</label>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">QR-Code Größe</label>
+          <select class="form-select" name="qr_size">
+            <option value="small" {% if settings.get('QR_SIZE', 'medium') == 'small' %}selected{% endif %}>Klein (100x100px)</option>
+            <option value="medium" {% if settings.get('QR_SIZE', 'medium') == 'medium' %}selected{% endif %}>Mittel (200x200px)</option>
+            <option value="large" {% if settings.get('QR_SIZE', 'medium') == 'large' %}selected{% endif %}>Groß (300x300px)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Wartung -->
+    <div class="tab-pane fade" id="maintenance" role="tabpanel">
+      <h4>Wartungs-Einstellungen</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="maintenance">
+
+        <div class="mb-3">
+          <label class="form-label">Standard-Wartungsintervall (Tage)</label>
+          <input type="number" class="form-control" name="default_maintenance_interval" value="{{ settings.get('DEFAULT_MAINTENANCE_INTERVAL', '90') }}">
+          <small class="text-muted">Standard für neue Items</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Vorwarnung (Tage)</label>
+          <input type="number" class="form-control" name="maintenance_warning_days" value="{{ settings.get('MAINTENANCE_WARNING_DAYS', '7') }}">
+          <small class="text-muted">Wieviele Tage vorher soll gewarnt werden?</small>
+        </div>
+
+        <div class="mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="auto_maintenance_reminders" {% if settings.get('AUTO_MAINTENANCE_REMINDERS', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Automatische Erinnerungen aktivieren</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Budget -->
+    <div class="tab-pane fade" id="budget" role="tabpanel">
+      <h4>Budget & Abschreibungs-Einstellungen</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="budget">
+
+        <div class="mb-3">
+          <label class="form-label">Standard-Abschreibungsdauer (Jahre)</label>
+          <input type="number" class="form-control" name="default_depreciation_years" value="{{ settings.get('DEFAULT_DEPRECIATION_YEARS', '3') }}">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Währung</label>
+          <select class="form-select" name="currency">
+            <option value="EUR" {% if settings.get('CURRENCY', 'EUR') == 'EUR' %}selected{% endif %}>EUR (€)</option>
+            <option value="USD" {% if settings.get('CURRENCY') == 'USD' %}selected{% endif %}>USD ($)</option>
+            <option value="CHF" {% if settings.get('CURRENCY') == 'CHF' %}selected{% endif %}>CHF</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="enable_budget_tracking" {% if settings.get('ENABLE_BUDGET_TRACKING', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Budget-Tracking aktivieren</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Sicherheit -->
+    <div class="tab-pane fade" id="security" role="tabpanel">
+      <h4>Sicherheits-Einstellungen</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="security">
+
+        <div class="mb-3">
+          <label class="form-label">Session-Timeout (Minuten)</label>
+          <input type="number" class="form-control" name="session_timeout" value="{{ settings.get('SESSION_TIMEOUT', '30') }}">
+          <small class="text-muted">Nach dieser Zeit wird der Benutzer automatisch abgemeldet</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Max. Login-Versuche</label>
+          <input type="number" class="form-control" name="max_login_attempts" value="{{ settings.get('MAX_LOGIN_ATTEMPTS', '5') }}">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Account-Sperre (Minuten)</label>
+          <input type="number" class="form-control" name="lockout_duration" value="{{ settings.get('LOCKOUT_DURATION', '15') }}">
+          <small class="text-muted">Dauer der Kontosperre nach zu vielen fehlgeschlagenen Versuchen</small>
+        </div>
+
+        <div class="mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="require_2fa" {% if settings.get('REQUIRE_2FA', 'false') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">2FA für alle Benutzer erzwingen</label>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="require_strong_passwords" {% if settings.get('REQUIRE_STRONG_PASSWORDS', 'true') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Starke Passwörter erzwingen</label>
+          </div>
+          <small class="text-muted">Min. 8 Zeichen, Groß-/Kleinbuchstaben, Ziffern, Sonderzeichen</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Backup -->
+    <div class="tab-pane fade" id="backup" role="tabpanel">
+      <h4>Backup-Einstellungen</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="backup">
+
+        <div class="mb-3">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="auto_backup_enabled" {% if settings.get('AUTO_BACKUP_ENABLED', 'false') == 'true' %}checked{% endif %}>
+            <label class="form-check-label">Automatische Backups aktivieren</label>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Backup-Intervall</label>
+          <select class="form-select" name="backup_interval">
+            <option value="daily" {% if settings.get('BACKUP_INTERVAL', 'weekly') == 'daily' %}selected{% endif %}>Täglich</option>
+            <option value="weekly" {% if settings.get('BACKUP_INTERVAL', 'weekly') == 'weekly' %}selected{% endif %}>Wöchentlich</option>
+            <option value="monthly" {% if settings.get('BACKUP_INTERVAL') == 'monthly' %}selected{% endif %}>Monatlich</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Backup-Speicherort</label>
+          <input type="text" class="form-control" name="backup_path" value="{{ settings.get('BACKUP_PATH', './backups') }}" placeholder="./backups">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Aufbewahrungsdauer (Tage)</label>
+          <input type="number" class="form-control" name="backup_retention" value="{{ settings.get('BACKUP_RETENTION', '30') }}">
+          <small class="text-muted">Ältere Backups werden automatisch gelöscht</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+        <button type="button" class="btn btn-outline-success" onclick="createBackup()">
+          <i class="bi bi-download"></i> Jetzt Backup erstellen
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Import/Export -->
+    <div class="tab-pane fade" id="import" role="tabpanel">
+      <h4>Import/Export-Einstellungen</h4>
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="import">
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-building"></i> Dell API Integration</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted">
+              Verbinden Sie Ihre Dell TechDirect API, um automatisch Garantie- und Vertragsstatus für Dell-Geräte abzurufen.
+              Die Daten werden den Geräten automatisch zugeordnet basierend auf dem Service Tag.
+            </p>
+
+            <div class="mb-3">
+              {{ form.dell_client_id.label(class="form-label") }}
+              {{ form.dell_client_id(class="form-control") }}
+              <div class="form-text">Dell TechDirect API Client ID</div>
+            </div>
+
+            <div class="mb-3">
+              {{ form.dell_client_secret.label(class="form-label") }}
+              {{ form.dell_client_secret(class="form-control", placeholder="Client Secret eingeben...", autocomplete="off") }}
+              <div class="form-text">Dell TechDirect API Client Secret (wird verschlüsselt gespeichert)</div>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i>
+              <strong>Hinweis:</strong> Um die Dell API nutzen zu können, benötigen Sie einen kostenlosen Dell TechDirect Account.
+              <a href="https://techdirect.dell.com" target="_blank" class="alert-link">Jetzt registrieren</a>
+            </div>
+
+            <div class="mt-3">
+              <button type="button" class="btn btn-success" onclick="syncAllDellWarranties()">
+                <i class="bi bi-arrow-repeat"></i> Alle Dell-Geräte jetzt synchronisieren
+              </button>
+              <span id="syncStatus" class="ms-3"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-file-earmark-arrow-down"></i> Export-Einstellungen</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Standard Export-Format</label>
+              <select class="form-select" name="default_export_format">
+                <option value="csv" {% if settings.get('DEFAULT_EXPORT_FORMAT', 'csv') == 'csv' %}selected{% endif %}>CSV</option>
+                <option value="xlsx" {% if settings.get('DEFAULT_EXPORT_FORMAT') == 'xlsx' %}selected{% endif %}>Excel (XLSX)</option>
+                <option value="json" {% if settings.get('DEFAULT_EXPORT_FORMAT') == 'json' %}selected{% endif %}>JSON</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">CSV-Trennzeichen</label>
+              <select class="form-select" name="csv_delimiter">
+                <option value="," {% if settings.get('CSV_DELIMITER', ',') == ',' %}selected{% endif %}>Komma (,)</option>
+                <option value=";" {% if settings.get('CSV_DELIMITER') == ';' %}selected{% endif %}>Semikolon (;)</option>
+                <option value="\t" {% if settings.get('CSV_DELIMITER') == '\t' %}selected{% endif %}>Tab</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save"></i> Speichern
+        </button>
+      </form>
+    </div>
+
+    <script>
+    function syncAllDellWarranties() {
+      const btn = event.target;
+      const status = document.getElementById('syncStatus');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Synchronisiere...';
+      status.innerHTML = '<span class="text-info">Synchronisierung läuft...</span>';
+
+      fetch('/api/dell/sync-all-warranties', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Alle Dell-Geräte jetzt synchronisieren';
+
+        if (data.success) {
+          status.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> ${data.message}</span>`;
+          if (data.data && data.data.errors && data.data.errors.length > 0) {
+            status.innerHTML += `<br><small class="text-warning">Fehler: ${data.data.errors.join(', ')}</small>`;
+          }
+        } else {
+          status.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> ${data.message}</span>`;
+        }
+      })
+      .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Alle Dell-Geräte jetzt synchronisieren';
+        status.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> Fehler: ${error.message}</span>`;
+      });
+    }
+    </script>
+
+    <!-- Tab: Module -->
+    <div class="tab-pane fade" id="modules" role="tabpanel">
+      <h4>Modul-Verwaltung</h4>
+      <p class="text-muted">Aktivieren oder deaktivieren Sie optionale Module der InventoryApp.</p>
+
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="modules">
+
+        <!-- Ticketsystem -->
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-ticket-detailed"></i> Ticketsystem</h5>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="enable_tickets" name="enable_tickets"
+                     {% if settings.get('ENABLE_TICKETS', 'true') == 'true' %}checked{% endif %}>
+              <label class="form-check-label" for="enable_tickets">Aktiviert</label>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-0">
+              Das Ticketsystem ermöglicht es Benutzern, Support-Anfragen zu erstellen und zu verwalten.
+              Features: Prioritäten, Kategorien, Zuweisung, SLA-Tracking, interne Notizen, Bewertungen.
+            </p>
+          </div>
+        </div>
+
+        <!-- Wartungsverwaltung -->
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-tools"></i> Wartungsverwaltung</h5>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="enable_maintenance" name="enable_maintenance"
+                     {% if settings.get('ENABLE_MAINTENANCE', 'true') == 'true' %}checked{% endif %}>
+              <label class="form-check-label" for="enable_maintenance">Aktiviert</label>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-0">
+              Planen und verwalten Sie Wartungsarbeiten für Ihre Geräte mit automatischen Erinnerungen.
+            </p>
+          </div>
+        </div>
+
+        <!-- Reservierungssystem -->
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Reservierungssystem</h5>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="enable_reservations" name="enable_reservations"
+                     {% if settings.get('ENABLE_RESERVATIONS', 'true') == 'true' %}checked{% endif %}>
+              <label class="form-check-label" for="enable_reservations">Aktiviert</label>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-0">
+              Erlauben Sie Benutzern, Geräte im Voraus zu reservieren mit Kalenderansicht und Konflikt-Erkennung.
+            </p>
+          </div>
+        </div>
+
+        <!-- Analytics & Berichte -->
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-graph-up"></i> Analytics & Berichte</h5>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="enable_analytics" name="enable_analytics"
+                     {% if settings.get('ENABLE_ANALYTICS', 'true') == 'true' %}checked{% endif %}>
+              <label class="form-check-label" for="enable_analytics">Aktiviert</label>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-0">
+              Detaillierte Analysen, Dashboards und Berichte über Ihre Inventarverwaltung.
+            </p>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i> Änderungen speichern
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Authentifizierung -->
+    <div class="tab-pane fade" id="auth" role="tabpanel">
+      <h4>Authentifizierungs-Einstellungen</h4>
+      <p class="text-muted">Konfigurieren Sie alternative Login-Methoden für Ihre Benutzer.</p>
+
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="auth">
+
+        <!-- OAuth Settings -->
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-key"></i> OAuth 2.0 Einstellungen</h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info mb-3">
+              <i class="bi bi-info-circle"></i> OAuth ermöglicht Benutzern die Anmeldung mit Google, Microsoft oder GitHub Konten.
+              Die Konfiguration erfolgt über Umgebungsvariablen (Environment Variables).
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">OAuth Auto-Registrierung</label>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="oauth_auto_register" name="oauth_auto_register"
+                         {% if settings.get('OAUTH_AUTO_REGISTER', 'false') == 'true' %}checked{% endif %}>
+                  <label class="form-check-label" for="oauth_auto_register">
+                    Automatische Benutzer-Erstellung bei OAuth Login
+                  </label>
+                </div>
+                <small class="text-muted">Wenn aktiviert, werden neue Benutzer automatisch erstellt wenn sie sich per OAuth anmelden.</small>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Standard-Rolle für OAuth Benutzer</label>
+                <select class="form-select" name="oauth_default_role">
+                  <option value="user" {% if settings.get('OAUTH_DEFAULT_ROLE', 'user') == 'user' %}selected{% endif %}>User</option>
+                  <option value="admin" {% if settings.get('OAUTH_DEFAULT_ROLE') == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+                <small class="text-muted">Rolle die neuen OAuth-Benutzern zugewiesen wird.</small>
+              </div>
+            </div>
+
+            <hr>
+
+            <h6 class="mb-3">OAuth Provider Konfiguration (via Environment Variables):</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                  <tr>
+                    <th>Provider</th>
+                    <th>Environment Variables</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><i class="bi bi-google text-danger"></i> Google</td>
+                    <td>
+                      <code>GOOGLE_CLIENT_ID</code><br>
+                      <code>GOOGLE_CLIENT_SECRET</code>
+                    </td>
+                    <td>
+                      {% if oauth_providers_config.google %}
+                        <span class="badge bg-success">Konfiguriert</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Nicht konfiguriert</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><i class="bi bi-microsoft text-primary"></i> Microsoft</td>
+                    <td>
+                      <code>MICROSOFT_CLIENT_ID</code><br>
+                      <code>MICROSOFT_CLIENT_SECRET</code>
+                    </td>
+                    <td>
+                      {% if oauth_providers_config.microsoft %}
+                        <span class="badge bg-success">Konfiguriert</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Nicht konfiguriert</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><i class="bi bi-github"></i> GitHub</td>
+                    <td>
+                      <code>GITHUB_CLIENT_ID</code><br>
+                      <code>GITHUB_CLIENT_SECRET</code>
+                    </td>
+                    <td>
+                      {% if oauth_providers_config.github %}
+                        <span class="badge bg-success">Konfiguriert</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Nicht konfiguriert</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAML Settings -->
+        <div class="card mb-4">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-shield-check"></i> SAML SSO Einstellungen (Enterprise)</h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info mb-3">
+              <i class="bi bi-info-circle"></i> SAML SSO ermöglicht Enterprise Single Sign-On mit Ihrem Identity Provider (z.B. Azure AD, Okta, Auth0).
+              Die vollständige Konfiguration erfolgt über Umgebungsvariablen.
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">SAML Auto-Registrierung</label>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="saml_auto_register" name="saml_auto_register"
+                         {% if settings.get('SAML_AUTO_REGISTER', 'false') == 'true' %}checked{% endif %}>
+                  <label class="form-check-label" for="saml_auto_register">
+                    Automatische Benutzer-Erstellung bei SAML Login
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Standard-Rolle für SAML Benutzer</label>
+                <select class="form-select" name="saml_default_role">
+                  <option value="user" {% if settings.get('SAML_DEFAULT_ROLE', 'user') == 'user' %}selected{% endif %}>User</option>
+                  <option value="admin" {% if settings.get('SAML_DEFAULT_ROLE') == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+              </div>
+            </div>
+
+            <hr>
+
+            <h6 class="mb-3">Erforderliche SAML Environment Variables:</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <h6 class="text-muted">Service Provider (SP):</h6>
+                <ul class="small">
+                  <li><code>SAML_SP_ENTITY_ID</code></li>
+                  <li><code>SAML_SP_CERT</code> (optional)</li>
+                  <li><code>SAML_SP_KEY</code> (optional)</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h6 class="text-muted">Identity Provider (IdP):</h6>
+                <ul class="small">
+                  <li><code>SAML_IDP_ENTITY_ID</code></li>
+                  <li><code>SAML_IDP_SSO_URL</code></li>
+                  <li><code>SAML_IDP_SLO_URL</code> (optional)</li>
+                  <li><code>SAML_IDP_CERT</code></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="alert alert-warning mt-3">
+              <i class="bi bi-exclamation-triangle"></i> <strong>Hinweis:</strong>
+              Die SAML Callback URL für Ihren IdP lautet: <code>{{ request.url_root }}saml/acs</code>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i> Änderungen speichern
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab: Logs -->
+    <div class="tab-pane fade" id="logs" role="tabpanel">
+      <h4>System-Logs</h4>
+
+      <!-- Log Files Management -->
+      <div class="mb-4">
+        <h5><i class="bi bi-file-text"></i> Log-Dateien Verwaltung</h5>
+        <div id="log-files-list" class="mb-3">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Lade...</span>
+          </div>
+        </div>
+        <button class="btn btn-outline-danger" onclick="cleanupOldLogs()">
+          <i class="bi bi-trash"></i> Alte Logs löschen (30+ Tage)
+        </button>
+      </div>
+
+      <!-- Audit Log -->
+      <div class="mb-4">
+        <h5><i class="bi bi-journal-check"></i> Audit Log (letzte 50 Einträge)</h5>
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+          <table class="table table-sm table-hover">
+            <thead class="table-light sticky-top">
+              <tr>
+                <th>Zeit</th>
+                <th>Benutzer</th>
+                <th>Methode</th>
+                <th>Route</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in audits %}
+              <tr>
+                <td>{{ a.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+                <td>{{ a.user.username }}</td>
+                <td><span class="badge bg-info">{{ a.method }}</span></td>
+                <td><code>{{ a.endpoint }}</code></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Error Log -->
+      <div class="mb-4">
+        <h5><i class="bi bi-exclamation-triangle"></i> Error Log (letzte 50 Zeilen)</h5>
+        <pre class="bg-dark text-light p-3 rounded" style="max-height: 300px; overflow: auto; font-size: 0.85rem;">{{ errors|join('') }}</pre>
+      </div>
+    </div>
+
+    <!-- Tab: ML/KI Settings -->
+    <div class="tab-pane fade" id="ml" role="tabpanel">
+      <h4><i class="bi bi-robot"></i> Machine Learning / KI-Einstellungen</h4>
+      <p class="text-muted">Verwaltung der ML-gestützten Features für intelligente Kategorisierung und prädiktive Wartung</p>
+
+      <form method="post" action="{{ url_for('admin_settings') }}">
+        {{ form.hidden_tag() }}
+        <input type="hidden" name="tab" value="ml">
+
+        <!-- ML Service Status -->
+        <div class="card mb-4">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Service Status</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h6>ML Service</h6>
+                <div id="ml-status">
+                  {% if ml_service_enabled %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Aktiv</span>
+                  {% else %}
+                    <span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Deaktiviert</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <h6>Kategorisierungs-Modell</h6>
+                <div id="model-status">
+                  <span class="badge bg-warning"><i class="bi bi-hourglass-split"></i> Lädt...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enable/Disable ML -->
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-toggle-on"></i> ML Features aktivieren/deaktivieren</h5>
+          </div>
+          <div class="card-body">
+            <div class="form-check form-switch mb-3">
+              <input class="form-check-input" type="checkbox" id="enable_ml_service" name="enable_ml_service"
+                     {% if settings.get('ENABLE_ML_SERVICE', 'false') == 'true' %}checked{% endif %}>
+              <label class="form-check-label fw-bold" for="enable_ml_service">
+                ML Service aktivieren
+              </label>
+            </div>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i>
+              <strong>ML Features:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Smart Kategorisierung - Automatische Vorschläge basierend auf Namen und Beschreibung</li>
+                <li>Prädiktive Wartung - Vorhersage von Wartungsbedarf</li>
+                <li>Nutzungsmuster-Analyse - Erkennung beliebter und inaktiver Gegenstände</li>
+                <li>Intelligente Suchranking - Personalisierte Suchergebnisse</li>
+                <li>Empfehlungen - Vorschläge basierend auf Nutzungshistorie</li>
+              </ul>
+            </div>
+
+            <div class="form-check form-switch mb-3" id="ml-features" style="{% if settings.get('ENABLE_ML_SERVICE', 'false') != 'true' %}display: none;{% endif %}">
+              <input class="form-check-input" type="checkbox" id="enable_smart_categorization" name="enable_smart_categorization"
+                     {% if settings.get('ENABLE_SMART_CATEGORIZATION', 'true') == 'true' %}checked{% endif %}>
+              <label class="form-check-label" for="enable_smart_categorization">
+                Smart Kategorisierung aktivieren
+              </label>
+            </div>
+
+            <div class="form-check form-switch mb-3" id="ml-features-2" style="{% if settings.get('ENABLE_ML_SERVICE', 'false') != 'true' %}display: none;{% endif %}">
+              <input class="form-check-input" type="checkbox" id="enable_predictive_maintenance" name="enable_predictive_maintenance"
+                     {% if settings.get('ENABLE_PREDICTIVE_MAINTENANCE', 'true') == 'true' %}checked{% endif %}>
+              <label class="form-check-label" for="enable_predictive_maintenance">
+                Prädiktive Wartung aktivieren
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Training -->
+        <div class="card mb-4" id="training-section" style="{% if settings.get('ENABLE_ML_SERVICE', 'false') != 'true' %}display: none;{% endif %}">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-lightning"></i> Modell-Training</h5>
+          </div>
+          <div class="card-body">
+            <p class="text-muted">
+              Trainiere das Kategorisierungs-Modell mit den vorhandenen Daten.
+              Mindestens 10 kategorisierte Gegenstände erforderlich.
+            </p>
+
+            <div id="training-stats" class="mb-3">
+              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Lädt...</span>
+              </div>
+              <span class="ms-2">Lade Statistiken...</span>
+            </div>
+
+            <button type="button" class="btn btn-success" id="train-model-btn" onclick="trainCategorizerModel()">
+              <i class="bi bi-lightning"></i> Modell jetzt trainieren
+            </button>
+
+            <div id="training-progress" class="mt-3" style="display: none;">
+              <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%">
+                  Training läuft...
+                </div>
+              </div>
+            </div>
+
+            <div id="training-result" class="mt-3"></div>
+          </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Einstellungen speichern
+          </button>
+          <button type="reset" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Zurücksetzen
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tab: System-Updates -->
+    <div class="tab-pane fade" id="updates" role="tabpanel">
+      <h4><i class="bi bi-arrow-repeat"></i> System-Updates</h4>
+      <p class="text-muted">Hier können Sie die Anwendung auf die neueste Version aktualisieren.</p>
+
+      <div class="row">
+        <div class="col-md-6">
+          <!-- Aktuelle Version -->
+          <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0"><i class="bi bi-info-circle"></i> Aktuelle Version</h5>
+            </div>
+            <div class="card-body">
+              <h3 class="mb-3">
+                <span class="badge bg-primary" id="current-version">v{{ APP_VERSION }}</span>
+              </h3>
+              <p class="text-muted mb-0">Installierte Version der Anwendung</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <!-- Update-Status -->
+          <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0"><i class="bi bi-cloud-download"></i> Update-Status</h5>
+            </div>
+            <div class="card-body">
+              <div id="update-status-container">
+                <p class="text-muted">
+                  <i class="bi bi-hourglass-split"></i> Prüfe auf Updates...
+                </p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="checkForUpdates()">
+                <i class="bi bi-arrow-clockwise"></i> Jetzt prüfen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Changelog -->
+      <div class="card mb-4" id="changelog-card" style="display: none;">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="bi bi-list-ul"></i> Änderungen</h5>
+        </div>
+        <div class="card-body">
+          <div id="changelog-content"></div>
+        </div>
+      </div>
+
+      <!-- Update-Aktionen -->
+      <div class="card" id="update-actions-card" style="display: none;">
+        <div class="card-header bg-warning">
+          <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Update installieren</h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning mb-3">
+            <i class="bi bi-info-circle"></i>
+            <strong>Wichtig:</strong> Vor dem Update wird automatisch ein Backup erstellt.
+            Das Update kann einige Minuten dauern. Die Anwendung wird automatisch neu gestartet.
+          </div>
+
+          <div id="update-progress" style="display: none;">
+            <div class="progress mb-3" style="height: 30px;">
+              <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                   style="width: 100%;" id="update-progress-bar">
+                Installiere Update...
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-success btn-lg" onclick="applyUpdate()" id="apply-update-btn">
+            <i class="bi bi-download"></i> Update jetzt installieren
+          </button>
+          <button class="btn btn-secondary btn-lg ms-2" onclick="restartSystem()" id="restart-btn" style="display: none;">
+            <i class="bi bi-arrow-clockwise"></i> System neu starten
+          </button>
+        </div>
+      </div>
+
+      <!-- Update-Log -->
+      <div class="card mt-4">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0"><i class="bi bi-terminal"></i> Update-Log</h5>
+        </div>
+        <div class="card-body">
+          <pre class="bg-dark text-light p-3 rounded" style="max-height: 300px; overflow: auto; font-size: 0.85rem;" id="update-log">Keine Updates durchgeführt.</pre>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+function testEmail() {
+  alert('Test-E-Mail-Funktion noch nicht implementiert');
+  // TODO: AJAX-Request zum Senden einer Test-E-Mail
+}
+
+function createBackup() {
+  if (confirm('Möchten Sie jetzt ein manuelles Backup erstellen?')) {
+    alert('Backup-Funktion noch nicht implementiert');
+    // TODO: AJAX-Request zum Erstellen eines Backups
+  }
+}
+
+function clearLogs() {
+  if (confirm('Möchten Sie wirklich alle Logs löschen?')) {
+    alert('Log-Lösch-Funktion noch nicht implementiert');
+    // TODO: AJAX-Request zum Löschen der Logs
+  }
+}
+
+// Aktiven Tab aus URL-Hash wiederherstellen
+document.addEventListener('DOMContentLoaded', function() {
+  const hash = window.location.hash;
+  if (hash) {
+    const tabButton = document.querySelector(`button[data-bs-target="${hash}"]`);
+    if (tabButton) {
+      const tab = new bootstrap.Tab(tabButton);
+      tab.show();
+    }
+  }
+});
+
+// Tab-Wechsel in URL speichern
+document.querySelectorAll('#settingsTabs button').forEach(button => {
+  button.addEventListener('shown.bs.tab', function(e) {
+    const target = e.target.getAttribute('data-bs-target');
+    window.location.hash = target;
+  });
+});
+
+// ─── Update-Funktionen ───────────────────────────────────────────────────
+
+function checkForUpdates() {
+  const statusContainer = document.getElementById('update-status-container');
+  statusContainer.innerHTML = '<p class="text-muted"><i class="bi bi-hourglass-split"></i> Prüfe auf Updates...</p>';
+
+  fetch('/admin/check-updates')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        if (data.updates_available) {
+          statusContainer.innerHTML = `
+            <div class="alert alert-success mb-0">
+              <h5><i class="bi bi-check-circle"></i> ${data.update_count} Update(s) verfügbar!</h5>
+              <p class="mb-0">Aktuelle Version: <strong>${data.current_version}</strong></p>
+            </div>
+          `;
+
+          // Changelog anzeigen
+          if (data.changelog && data.changelog.length > 0) {
+            const changelogCard = document.getElementById('changelog-card');
+            const changelogContent = document.getElementById('changelog-content');
+            changelogCard.style.display = 'block';
+
+            let changelogHtml = '<ul class="list-unstyled">';
+            data.changelog.forEach(entry => {
+              changelogHtml += `<li class="mb-2"><i class="bi bi-arrow-right-circle text-success"></i> ${entry}</li>`;
+            });
+            changelogHtml += '</ul>';
+            changelogContent.innerHTML = changelogHtml;
+          }
+
+          // Update-Aktionen anzeigen
+          document.getElementById('update-actions-card').style.display = 'block';
+        } else {
+          statusContainer.innerHTML = `
+            <div class="alert alert-info mb-0">
+              <i class="bi bi-check-circle"></i> <strong>System ist auf dem neuesten Stand</strong>
+              <p class="mb-0 small">Version: ${data.current_version}</p>
+            </div>
+          `;
+          document.getElementById('changelog-card').style.display = 'none';
+          document.getElementById('update-actions-card').style.display = 'none';
+        }
+      } else {
+        statusContainer.innerHTML = `
+          <div class="alert alert-danger mb-0">
+            <i class="bi bi-exclamation-triangle"></i> ${data.message}
+          </div>
+        `;
+      }
+    })
+    .catch(error => {
+      statusContainer.innerHTML = `
+        <div class="alert alert-danger mb-0">
+          <i class="bi bi-exclamation-triangle"></i> Fehler beim Prüfen der Updates: ${error}
+        </div>
+      `;
+    });
+}
+
+function applyUpdate() {
+  if (!confirm('Möchten Sie das Update wirklich installieren? Die Anwendung wird neu gestartet.')) {
+    return;
+  }
+
+  const progressDiv = document.getElementById('update-progress');
+  const applyBtn = document.getElementById('apply-update-btn');
+  const logPre = document.getElementById('update-log');
+
+  applyBtn.disabled = true;
+  progressDiv.style.display = 'block';
+  logPre.textContent = 'Update wird gestartet...\n';
+
+  fetch('/admin/apply-update', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        logPre.textContent += `✅ ${data.message}\n`;
+        logPre.textContent += `📦 Backup erstellt: ${data.backup_path}\n`;
+
+        if (data.restart_required) {
+          logPre.textContent += '\n⚠️ Neustart erforderlich!\n';
+          document.getElementById('restart-btn').style.display = 'inline-block';
+          progressDiv.style.display = 'none';
+        }
+      } else {
+        logPre.textContent += `❌ Fehler: ${data.message}\n`;
+        applyBtn.disabled = false;
+        progressDiv.style.display = 'none';
+      }
+    })
+    .catch(error => {
+      logPre.textContent += `❌ Fehler: ${error}\n`;
+      applyBtn.disabled = false;
+      progressDiv.style.display = 'none';
+    });
+}
+
+function restartSystem() {
+  if (!confirm('System jetzt neu starten? Sie werden abgemeldet.')) {
+    return;
+  }
+
+  const logPre = document.getElementById('update-log');
+  logPre.textContent += '\n🔄 System wird neu gestartet...\n';
+
+  fetch('/admin/restart-system', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        logPre.textContent += '✅ Neustart gestartet. Bitte warten Sie 30 Sekunden und laden Sie die Seite neu.\n';
+
+        // Auto-reload nach 30 Sekunden
+        setTimeout(() => {
+          window.location.reload();
+        }, 30000);
+      } else {
+        logPre.textContent += `❌ ${data.message}\n`;
+      }
+    })
+    .catch(error => {
+      logPre.textContent += `❌ Fehler: ${error}\n`;
+    });
+}
+
+// Automatisch beim Laden des Tabs prüfen
+document.addEventListener('DOMContentLoaded', function() {
+  const updatesTab = document.getElementById('updates-tab');
+  if (updatesTab) {
+    updatesTab.addEventListener('shown.bs.tab', function() {
+      checkForUpdates();
+    });
+  }
+
+  // Load log files when Logs tab is shown
+  const logsTab = document.getElementById('logs-tab');
+  if (logsTab) {
+    logsTab.addEventListener('shown.bs.tab', loadLogFiles);
+    // Load initially if tab is active
+    if (logsTab.classList.contains('active')) {
+      loadLogFiles();
+    }
+  }
+});
+
+// Log Files Management Functions
+function loadLogFiles() {
+  const container = document.getElementById('log-files-list');
+  if (!container) return;
+
+  container.innerHTML = '<div class="spinner-border text-primary"><span class="visually-hidden">Lädt...</span></div>';
+
+  fetch('/api/logs')
+    .then(r => {
+      if (!r.ok) {
+        if (r.status === 401 || r.status === 403) {
+          throw new Error('Nicht autorisiert. Bitte neu anmelden.');
+        }
+        throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+      }
+      const contentType = r.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Keine gültige JSON-Antwort erhalten. Möglicherweise nicht angemeldet.');
+      }
+      return r.json();
+    })
+    .then(data => {
+      if (data.total_files === 0) {
+        container.innerHTML = '<div class="alert alert-info">Keine Log-Dateien gefunden.</div>';
+        return;
+      }
+
+      let html = `<p><strong>${data.total_files} Dateien</strong> (${data.total_size_mb} MB)</p><div class="list-group">`;
+
+      data.files.forEach(f => {
+        const encodedName = encodeURIComponent(f.name);
+        const escapedName = f.name.replace(/'/g, "\\'");
+        html += `
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-1">${f.name}</h6>
+                <small class="text-muted">${f.size_mb} MB • ${f.modified_str}</small>
+              </div>
+              <div class="btn-group">
+                <a href="/api/logs/${encodedName}/download" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-download"></i> Download
+                </a>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteLog('${escapedName}')">
+                  <i class="bi bi-trash"></i> Löschen
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      container.innerHTML = html;
+    })
+    .catch(err => {
+      container.innerHTML = `<div class="alert alert-danger">Fehler: ${err}</div>`;
+    });
+}
+
+function deleteLog(filename) {
+  if (!confirm(`Log "${filename}" wirklich löschen?`)) return;
+
+  fetch(`/api/logs/${encodeURIComponent(filename)}`, {method: 'DELETE'})
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const contentType = r.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Keine JSON-Antwort');
+      }
+      return r.json();
+    })
+    .then(data => {
+      if (data.success) {
+        alert(`Gelöscht: ${data.size_freed_mb} MB freigegeben`);
+        loadLogFiles();
+      } else {
+        alert('Fehler: ' + data.error);
+      }
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function cleanupOldLogs() {
+  if (!confirm('Logs älter als 30 Tage löschen?')) return;
+
+  const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+
+  fetch('/api/logs/cleanup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    },
+    body: JSON.stringify({days: 30})
+  })
+  .then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  })
+  .then(data => {
+    alert(`${data.deleted_count} Logs gelöscht (${data.size_freed_mb} MB freigegeben)`);
+    loadLogFiles();
+  })
+  .catch(err => alert('Fehler: ' + err));
+}
+
+// ML Settings Functions
+document.getElementById('enable_ml_service')?.addEventListener('change', function() {
+  const enabled = this.checked;
+  const mlFeatures = document.getElementById('ml-features');
+  const mlFeatures2 = document.getElementById('ml-features-2');
+  const trainingSection = document.getElementById('training-section');
+
+  if (enabled) {
+    mlFeatures.style.display = 'block';
+    mlFeatures2.style.display = 'block';
+    trainingSection.style.display = 'block';
+  } else {
+    mlFeatures.style.display = 'none';
+    mlFeatures2.style.display = 'none';
+    trainingSection.style.display = 'none';
+  }
+});
+
+// Load ML statistics when tab is shown
+const mlTab = document.getElementById('ml-tab');
+if (mlTab) {
+  mlTab.addEventListener('shown.bs.tab', function() {
+    loadMLStats();
+  });
+}
+
+function loadMLStats() {
+  const statsContainer = document.getElementById('training-stats');
+  const modelStatus = document.getElementById('model-status');
+
+  if (!statsContainer) return;
+
+  fetch('/api/ml/stats')
+    .then(r => {
+      if (!r.ok) throw new Error('Nicht autorisiert');
+      return r.json();
+    })
+    .then(data => {
+      statsContainer.innerHTML = `
+        <div class="alert alert-info">
+          <strong>Verfügbare Trainingsdaten:</strong>
+          <ul class="mb-0 mt-2">
+            <li>${data.categorized_items || 0} kategorisierte Gegenstände</li>
+            <li>${data.total_categories || 0} verschiedene Kategorien</li>
+            <li>Mindestanforderung: 10 kategorisierte Gegenstände</li>
+          </ul>
+        </div>
+      `;
+
+      if (modelStatus && data.model_loaded) {
+        modelStatus.innerHTML = `
+          <span class="badge bg-success"><i class="bi bi-check-circle"></i> Geladen</span>
+          ${data.model_accuracy ? `<small class="text-muted ms-2">(${(data.model_accuracy * 100).toFixed(1)}% Genauigkeit)</small>` : ''}
+        `;
+      } else if (modelStatus) {
+        modelStatus.innerHTML = '<span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Nicht trainiert</span>';
+      }
+
+      const trainBtn = document.getElementById('train-model-btn');
+      if (trainBtn) {
+        trainBtn.disabled = (data.categorized_items || 0) < 10;
+        if (trainBtn.disabled) {
+          trainBtn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Nicht genug Daten (min. 10 benötigt)';
+        }
+      }
+    })
+    .catch(err => {
+      statsContainer.innerHTML = `<div class="alert alert-warning">Statistiken konnten nicht geladen werden: ${err.message}</div>`;
+      if (modelStatus) {
+        modelStatus.innerHTML = '<span class="badge bg-secondary"><i class="bi bi-question-circle"></i> Unbekannt</span>';
+      }
+    });
+}
+
+function trainCategorizerModel() {
+  const trainBtn = document.getElementById('train-model-btn');
+  const progress = document.getElementById('training-progress');
+  const result = document.getElementById('training-result');
+
+  if (!trainBtn || !progress || !result) return;
+
+  trainBtn.disabled = true;
+  progress.style.display = 'block';
+  result.innerHTML = '';
+
+  fetch('/api/ml/train-categorizer', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'}
+  })
+  .then(r => {
+    if (!r.ok) throw new Error('Training fehlgeschlagen');
+    return r.json();
+  })
+  .then(data => {
+    progress.style.display = 'none';
+    trainBtn.disabled = false;
+
+    if (data.success) {
+      result.innerHTML = `
+        <div class="alert alert-success">
+          <h6><i class="bi bi-check-circle"></i> Training erfolgreich!</h6>
+          <ul class="mb-0">
+            <li>Genauigkeit: ${(data.accuracy * 100).toFixed(1)}%</li>
+            <li>Anzahl Kategorien: ${data.num_categories}</li>
+            <li>Trainingsdaten: ${data.num_samples} Gegenstände</li>
+          </ul>
+        </div>
+      `;
+      loadMLStats(); // Reload stats
+    } else {
+      result.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle"></i> Fehler: ${data.error}
+        </div>
+      `;
+    }
+  })
+  .catch(err => {
+    progress.style.display = 'none';
+    trainBtn.disabled = false;
+    result.innerHTML = `
+      <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i> Fehler beim Training: ${err.message}
+      </div>
+    `;
+  });
+}
+
+// Fix duplicate CSRF token IDs (keep only the first one)
+document.addEventListener('DOMContentLoaded', function() {
+  const csrfTokens = document.querySelectorAll('input[name="csrf_token"]');
+  csrfTokens.forEach((token, index) => {
+    if (index > 0) {
+      token.removeAttribute('id');
+    }
+  });
+});
+</script>
+{% endblock %}

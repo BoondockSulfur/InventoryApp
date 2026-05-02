@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}QR-Codes PDF - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="bi bi-qr-code"></i> QR-Codes zum Drucken</h1>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('generate_qr_pdf') }}" class="btn btn-primary">
+                <i class="bi bi-download"></i> PDF generieren
+            </a>
+            <a href="{{ url_for('items') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
+        </div>
+    </div>
+
+    <!-- Einstellungen -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-sliders"></i> PDF-Einstellungen</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" class="row g-3" id="qrForm">
+                {{ form.hidden_tag() }}
+
+                <!-- Gegenstände auswählen -->
+                <div class="col-md-6">
+                    {{ form.items.label(class="form-label") }}
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle"></i>
+                        {{ items_count }} Gegenstände verfügbar
+                    </div>
+                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; padding: 10px;">
+                        {% for item in all_items %}
+                            <div class="form-check">
+                                <input class="form-check-input item-checkbox" type="checkbox"
+                                       name="items" value="{{ item.id }}" id="item_{{ item.id }}">
+                                <label class="form-check-label" for="item_{{ item.id }}">
+                                    {{ item.name }} ({{ item.serial }})
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="selectAllBtn">
+                        <i class="bi bi-check-all"></i> Alle auswählen
+                    </button>
+                </div>
+
+                <!-- QR-Code Einstellungen -->
+                <div class="col-md-6">
+                    <!-- Größe -->
+                    <div class="mb-3">
+                        {{ form.qr_size.label(class="form-label") }}
+                        {{ form.qr_size(class="form-range") }}
+                        <small class="form-text text-muted">Größe des QR-Codes (20-100mm)</small>
+                    </div>
+
+                    <!-- Layout -->
+                    <div class="mb-3">
+                        {{ form.layout.label(class="form-label") }}
+                        {{ form.layout(class="form-select") }}
+                        <small class="form-text text-muted">A4 oder Benutzerdefiniert</small>
+                    </div>
+
+                    <!-- Informationen einbinden -->
+                    <div class="mb-3">
+                        <strong>Mit QR-Code drucken:</strong>
+                        <div class="form-check">
+                            {{ form.include_name(class="form-check-input") }}
+                            {{ form.include_name.label(class="form-check-label") }}
+                        </div>
+                        <div class="form-check">
+                            {{ form.include_serial(class="form-check-input") }}
+                            {{ form.include_serial.label(class="form-check-label") }}
+                        </div>
+                        <div class="form-check">
+                            {{ form.include_category(class="form-check-input") }}
+                            {{ form.include_category.label(class="form-check-label") }}
+                        </div>
+                    </div>
+
+                    <!-- Sortierung -->
+                    <div class="mb-3">
+                        {{ form.sort_by.label(class="form-label") }}
+                        {{ form.sort_by(class="form-select") }}
+                    </div>
+
+                    <!-- Farbeinstellungen -->
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.color_mode(class="form-check-input") }}
+                            {{ form.color_mode.label(class="form-check-label") }}
+                        </div>
+                        <small class="form-text text-muted">Schwarz-Weiß oder Farb-Modus</small>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-12">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                        <button type="button" class="btn btn-secondary btn-lg" id="previewBtn">
+                            <i class="bi bi-eye"></i> Vorschau
+                        </button>
+                        <a href="{{ url_for('items') }}" class="btn btn-outline-secondary btn-lg">Abbrechen</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vorschau -->
+    <div class="card" id="previewCard" style="display: none;">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-eye"></i> Vorschau</h5>
+        </div>
+        <div class="card-body">
+            <div id="previewContent" class="border p-4" style="max-height: 600px; overflow-y: auto;">
+                <!-- Vorschau wird hier eingefügt -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Hinweise -->
+    <div class="row mt-4">
+        <div class="col-lg-8">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-info-circle"></i> Hinweise zum Drucken</h5>
+                    <ul class="small mb-0">
+                        <li>QR-Codes sollten mindestens 2cm x 2cm groß sein für zuverlässiges Scannen</li>
+                        <li>Verwenden Sie hochwertige Druckereinstellungen für beste Lesbarkeit</li>
+                        <li>Laminieren Sie die Ausdrucke für längere Haltbarkeit</li>
+                        <li>Testen Sie die Codes mit einem Scanner bevor Sie sie laminieren</li>
+                        <li>A4-Papier ist am wirtschaftlichsten</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-lightning"></i> Schnelle Aktionen</h5>
+                    <a href="{{ url_for('generate_qr_pdf', template='4x4') }}" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                        <i class="bi bi-grid-3x2"></i> 4x4 Raster
+                    </a>
+                    <a href="{{ url_for('generate_qr_pdf', template='6x8') }}" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                        <i class="bi bi-grid-3x2"></i> 6x8 Raster
+                    </a>
+                    <a href="{{ url_for('generate_qr_pdf', template='10x10') }}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-grid-3x2"></i> 10x10 Raster
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Alle auswählen
+    document.getElementById('selectAllBtn').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => cb.checked = !allChecked);
+        updateSelectAllButton();
+    });
+
+    function updateSelectAllButton() {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        const btn = document.getElementById('selectAllBtn');
+        if (allChecked) {
+            btn.textContent = ' Alle abwählen';
+        } else {
+            btn.innerHTML = '<i class="bi bi-check-all"></i> Alle auswählen';
+        }
+    }
+
+    // Vorschau
+    document.getElementById('previewBtn').addEventListener('click', function() {
+        const previewCard = document.getElementById('previewCard');
+        previewCard.style.display = previewCard.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Initialisieren
+    updateSelectAllButton();
+</script>
+{% endblock %}

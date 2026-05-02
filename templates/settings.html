@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Einstellungen</h1>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.key.label(class="form-label") }}
+      {{ form.key(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.value.label(class="form-label") }}
+      {{ form.value(class="form-control") }}
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+  <hr>
+  <h2>Aktuelle Einstellungen</h2>
+  <table class="table">
+    <thead><tr><th>Schlüssel</th><th>Wert</th></tr></thead>
+    <tbody>
+      {% for s in settings %}
+        <tr><td>{{ s.key }}</td><td>{{ s.value }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

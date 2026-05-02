@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Budget-Tracking{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-cash-stack"></i> Budget-Tracking</h1>
+        <a href="{{ url_for('add_budget') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Budget hinzufügen
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Gesamt-Wert</h5>
+                    <h2>{{ "%.2f"|format(total_value) }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Aktueller Wert (abgeschrieben)</h5>
+                    <h2>{{ "%.2f"|format(current_value) }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Abschreibung</h5>
+                    <h2>{{ "%.2f"|format(total_value - current_value) }} €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if budgets %}
+    <div class="card">
+        <div class="card-header">
+            <h5>Budget-Übersicht für {{ current_year }}</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Budget-Name</th>
+                        <th>Kategorie</th>
+                        <th>Abteilung</th>
+                        <th>Zeitraum</th>
+                        <th>Budgetiert</th>
+                        <th>Ausgegeben</th>
+                        <th>Verfügbar</th>
+                        <th>Status</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for budget in budgets %}
+                    <tr>
+                        <td>
+                            <strong>{{ budget.name }}</strong>
+                            {% if budget.description %}
+                            <br><small class="text-muted">{{ budget.description[:50] }}{% if budget.description|length > 50 %}...{% endif %}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ budget.category }}</span>
+                        </td>
+                        <td>{{ budget.department or '-' }}</td>
+                        <td>
+                            <small>
+                                {{ budget.start_date.strftime('%d.%m.%Y') if budget.start_date else '-' }}
+                                <br>bis<br>
+                                {{ budget.end_date.strftime('%d.%m.%Y') if budget.end_date else '-' }}
+                            </small>
+                        </td>
+                        <td>{{ "%.2f"|format(budget.allocated_amount or 0) }} €</td>
+                        <td>{{ "%.2f"|format(budget.calculate_spent_amount()) }} €</td>
+                        <td>{{ "%.2f"|format(budget.get_remaining_budget()) }} €</td>
+                        <td>
+                            {% set usage_percent = (budget.calculate_spent_amount() / (budget.allocated_amount or 1) * 100) %}
+                            {% if usage_percent >= 100 %}
+                                <span class="badge bg-danger">Überschritten</span>
+                            {% elif usage_percent >= 90 %}
+                                <span class="badge bg-warning">Kritisch</span>
+                            {% elif usage_percent >= 75 %}
+                                <span class="badge bg-info">Hoch</span>
+                            {% else %}
+                                <span class="badge bg-success">Normal</span>
+                            {% endif %}
+                            <br><small>{{ "%.1f"|format(usage_percent) }}%</small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{{ url_for('budget_detail', budget_id=budget.id) }}" class="btn btn-outline-primary" title="Details anzeigen">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('add_budget_transaction', budget_id=budget.id) }}" class="btn btn-outline-success" title="Transaktion hinzufügen">
+                                    <i class="bi bi-plus-circle"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <div class="mb-4">
+                <i class="bi bi-cash-stack" style="font-size: 80px; color: #6c757d; opacity: 0.3;"></i>
+            </div>
+            <h3 class="mb-3">Keine Budget-Einträge</h3>
+            <p class="text-muted mb-4">
+                Für das Jahr {{ current_year }} wurden noch keine Budgets angelegt.
+            </p>
+            <a href="{{ url_for('add_budget') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Erstes Budget hinzufügen
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+<!-- Label Designer Modal -->
+<div class="modal fade" id="labelDesignerModal" tabindex="-1" aria-labelledby="labelDesignerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="labelDesignerModalLabel">
+          <i class="bi bi-qr-code me-2"></i>Label Designer
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <!-- Label Designer wird hier als iframe geladen -->
+        <iframe
+          id="labelDesignerFrame"
+          src=""
+          style="width: 100%; height: 70vh; border: none;"
+          title="Label Designer">
+        </iframe>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i>Schließen
+        </button>
+        <button type="button" class="btn btn-primary" id="openLabelDesignerNewTab">
+          <i class="bi bi-box-arrow-up-right me-1"></i>In neuem Tab öffnen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Label Designer Modal Funktionalität
+document.addEventListener('DOMContentLoaded', function() {
+  const labelModal = document.getElementById('labelDesignerModal');
+  const labelFrame = document.getElementById('labelDesignerFrame');
+  const openNewTabBtn = document.getElementById('openLabelDesignerNewTab');
+  let currentLabelUrl = '';
+
+  // Event Listener für "In neuem Tab öffnen"
+  if (openNewTabBtn) {
+    openNewTabBtn.addEventListener('click', function() {
+      if (currentLabelUrl) {
+        window.open(currentLabelUrl, '_blank');
+      }
+    });
+  }
+
+  // Global function to open label designer
+  window.openLabelDesigner = function(serial) {
+    if (!serial) {
+      console.error('No serial number provided');
+      return;
+    }
+
+    // Baue URL
+    currentLabelUrl = `/labels/generator?serial=${encodeURIComponent(serial)}`;
+
+    // Setze iframe src
+    labelFrame.src = currentLabelUrl;
+
+    // Öffne Modal
+    const bsModal = new bootstrap.Modal(labelModal);
+    bsModal.show();
+  };
+
+  // Reset iframe when modal closes
+  if (labelModal) {
+    labelModal.addEventListener('hidden.bs.modal', function() {
+      labelFrame.src = '';
+    });
+  }
+});
+</script>
+
+<style>
+#labelDesignerModal .modal-dialog {
+  max-width: 95%;
+}
+
+#labelDesignerFrame {
+  background: #f8f9fa;
+  min-height: 500px;
+}
+
+@media (max-width: 768px) {
+  #labelDesignerModal .modal-dialog {
+    max-width: 100%;
+    margin: 0;
+  }
+
+  #labelDesignerFrame {
+    height: 80vh !important;
+  }
+}
+</style>

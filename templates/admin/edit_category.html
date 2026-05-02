@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h1 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Kategorie bearbeiten</h1>
+      <p class="text-muted">{{ category.name }}</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+              {{ form.name.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                {{ form.name(class="form-control") }}
+              </div>
+              {% if form.name.errors %}
+                <div class="invalid-feedback d-block">{% for error in form.name.errors %}{{ error }}{% endfor %}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              {{ form.description.label(class="form-label") }}
+              {{ form.description(class="form-control", rows="3") }}
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                {{ form.icon.label(class="form-label") }}
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-star"></i></span>
+                  {{ form.icon(class="form-control") }}
+                </div>
+                <small class="text-muted">Bootstrap Icons Namen ohne "bi-"</small>
+              </div>
+              <div class="col-md-6 mb-3">
+                {{ form.color.label(class="form-label") }}
+                <div class="input-group">
+                  {{ form.color(class="form-control", type="color") }}
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              {{ form.submit(class="btn btn-primary btn-lg") }}
+              <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-secondary btn-lg"><i class="bi bi-x-circle me-1"></i>Abbrechen</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-info-circle me-2"></i>Verwendung</h5>
+          <hr>
+          <p class="small mb-0">Diese Kategorie wird von <strong>{{ category.items|length }}</strong> Gegenstand/Gegenständen verwendet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

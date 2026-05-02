@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Massen-Bearbeitung - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">
+        <i class="bi bi-pencil-square"></i> Massen-Bearbeitung von Gegenständen
+    </h1>
+
+    <form method="post" novalidate class="needs-validation">
+        {{ form.hidden_tag() }}
+
+        <!-- Ausgewählte Gegenstände -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> Ausgewählte Gegenstände ({{ items|length }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Seriennummer</th>
+                                <th>Kategorie</th>
+                                <th>Standort</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                                <tr>
+                                    <td><code>{{ item.id }}</code></td>
+                                    <td>{{ item.name }}</td>
+                                    <td><code>{{ item.serial }}</code></td>
+                                    <td>{{ item.category or '-' }}</td>
+                                    <td>{{ item.location or '-' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bearbeitungsoptionen -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> Zu bearbeitende Felder</h5>
+            </div>
+            <div class="card-body">
+                <!-- Standort -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.update_location(class="form-check-input", id="update_location") }}
+                        {{ form.update_location.label(class="form-check-label", for_="update_location") }}
+                    </div>
+                    {{ form.location(class="form-select ms-4", placeholder="Wählen Sie den neuen Standort") }}
+                    {% if form.location.errors %}
+                        <div class="invalid-feedback d-block ms-4">
+                            {% for error in form.location.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Kategorie -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.update_category(class="form-check-input", id="update_category") }}
+                        {{ form.update_category.label(class="form-check-label", for_="update_category") }}
+                    </div>
+                    {{ form.category(class="form-select ms-4", placeholder="Wählen Sie die neue Kategorie") }}
+                    {% if form.category.errors %}
+                        <div class="invalid-feedback d-block ms-4">
+                            {% for error in form.category.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Status -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.update_status(class="form-check-input", id="update_status") }}
+                        {{ form.update_status.label(class="form-check-label", for_="update_status") }}
+                    </div>
+                    {{ form.status(class="form-select ms-4", placeholder="Wählen Sie den neuen Status") }}
+                    {% if form.status.errors %}
+                        <div class="invalid-feedback d-block ms-4">
+                            {% for error in form.status.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Zuständiger Nutzer -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.update_owner(class="form-check-input", id="update_owner") }}
+                        {{ form.update_owner.label(class="form-check-label", for_="update_owner") }}
+                    </div>
+                    {{ form.owner(class="form-select ms-4", placeholder="Wählen Sie den neuen Besitzer") }}
+                    {% if form.owner.errors %}
+                        <div class="invalid-feedback d-block ms-4">
+                            {% for error in form.owner.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Notiz/Kommentar hinzufügen -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.add_note(class="form-check-input", id="add_note") }}
+                        {{ form.add_note.label(class="form-check-label", for_="add_note") }}
+                    </div>
+                    {{ form.note(class="form-control ms-4", rows="3", placeholder="Notiz hinzufügen...") }}
+                    {% if form.note.errors %}
+                        <div class="invalid-feedback d-block ms-4">
+                            {% for error in form.note.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tags hinzufügen/entfernen -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.update_tags(class="form-check-input", id="update_tags") }}
+                        {{ form.update_tags.label(class="form-check-label", for_="update_tags") }}
+                    </div>
+                    {{ form.tags(class="form-control ms-4", placeholder="Tags durch Komma trennen") }}
+                    {% if form.tags.errors %}
+                        <div class="invalid-feedback d-block ms-4">
+                            {% for error in form.tags.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Zusammenfassung und Bestätigung -->
+        <div class="alert alert-warning mt-4">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Achtung:</strong> Diese Aktion wird auf alle {{ items|length }} ausgewählten Gegenstände angewendet.
+            Bitte überprüfen Sie Ihre Einstellungen vor dem Speichern.
+        </div>
+
+        <!-- Buttons -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4 mb-4">
+            {{ form.submit(class="btn btn-success btn-lg") }}
+            <a href="{{ url_for('items') }}" class="btn btn-secondary btn-lg">Abbrechen</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Checkboxen Verhalten: Felder aktivieren/deaktivieren
+    document.querySelectorAll('input[type="checkbox"][id^="update_"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const fieldId = this.id.replace('update_', '');
+            const field = document.getElementById(fieldId) || document.querySelector(`[name="${fieldId}"]`);
+            if (field) {
+                field.disabled = !this.checked;
+                if (this.checked) {
+                    field.classList.add('border-primary');
+                } else {
+                    field.classList.remove('border-primary');
+                }
+            }
+        });
+    });
+
+    // Initial: Alle Felder deaktivieren
+    document.querySelectorAll('input[type="checkbox"][id^="update_"]').forEach(checkbox => {
+        checkbox.dispatchEvent(new Event('change'));
+    });
+</script>
+{% endblock %}

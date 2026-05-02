@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Berechtigungen{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-shield-lock"></i> Berechtigungsverwaltung</h1>
+        <a href="{{ url_for('add_permission') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Berechtigung hinzufügen
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Benutzer/Rolle</th>
+                        <th>Ressource</th>
+                        <th>Aktion</th>
+                        <th>Zugriff</th>
+                        <th>Gültig bis</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for perm in permissions %}
+                    <tr>
+                        <td>
+                            {% if perm.user %}
+                                <i class="bi bi-person"></i> {{ perm.user.username }}
+                            {% else %}
+                                <i class="bi bi-people"></i> {{ perm.role }}
+                            {% endif %}
+                        </td>
+                        <td>{{ perm.resource_type }} {% if perm.resource_id %}#{{ perm.resource_id }}{% endif %}</td>
+                        <td><code>{{ perm.action }}</code></td>
+                        <td>
+                            {% if perm.granted %}
+                                <span class="badge bg-success">Erlaubt</span>
+                            {% else %}
+                                <span class="badge bg-danger">Verweigert</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ perm.expires_at.strftime('%d.%m.%Y') if perm.expires_at else 'Unbegrenzt' }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            Keine Berechtigungen konfiguriert
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

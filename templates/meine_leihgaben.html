@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Meine Leihgaben</h1>
+  {% if loans %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Gegenstand</th>
+          <th>Seriennummer</th>
+          <th>Ausgeliehen am</th>
+          <th>Fällig bis</th>
+          <th>Rückgabe</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ln in loans %}
+          <tr>
+            <td>{{ ln.item.name }}</td>
+            <td>{{ ln.item.serial }}</td>
+            <td>{{ ln.loan_date }}</td>
+            <td>{{ ln.due_date }}</td>
+            <td>
+              {% if ln.return_date %}
+                {{ ln.return_date }}
+              {% else %}
+                <span class="badge bg-warning text-dark">Noch offen</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Du hast aktuell keine Gegenstände ausgeliehen.</p>
+  {% endif %}
+</div>
+{% endblock %}

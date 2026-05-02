@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Prioritäten verwalten - InventoryApp
+{% include 'tickets/_toast_notifications.html' %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-exclamation-circle"></i> Ticket-Prioritäten</h2>
+                    <p class="text-muted">Prioritätsstufen mit Response- und Resolution-Zeiten definieren</p>
+                </div>
+                <a href="{{ url_for('tickets.settings') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück zu Einstellungen
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Prioritäten-Liste</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Level (1-5)</th>
+                                    <th>Farbe</th>
+                                    <th>Response Time (h)</th>
+                                    <th>Resolution Time (h)</th>
+                                    <th>Auto-Eskalation</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if priorities %}
+                                    {% for priority in priorities %}
+                                    <tr data-id="{{ priority.id }}">
+                                        <td>
+                                            <span class="badge" style="background-color: {{ priority.color }}">
+                                                {{ priority.name }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ priority.level }}</strong>
+                                            {% for i in range(priority.level) %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            <input type="color" value="{{ priority.color }}" disabled style="width: 40px; height: 30px;">
+                                        </td>
+                                        <td>{{ priority.response_time_hours }}</td>
+                                        <td>{{ priority.resolution_time_hours }}</td>
+                                        <td>
+                                            {% if priority.auto_escalate %}
+                                                <span class="badge bg-danger">Ja</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Nein</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if priority.is_active %}
+                                                <span class="badge bg-success">Aktiv</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inaktiv</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="editPriority({{ priority.id }})">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deletePriority({{ priority.id }})">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                                            <p class="mt-2">Keine Prioritäten vorhanden</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <button class="btn btn-warning" onclick="showAddPriorityModal()">
+                            <i class="bi bi-plus-circle"></i> Neue Priorität
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Erstellen/Bearbeiten -->
+<div class="modal fade" id="priorityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Neue Priorität</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="priorityForm">
+                    <input type="hidden" id="priorityId">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="level" class="form-label">Prioritätsstufe (1-5) *</label>
+                        <input type="number" class="form-control" id="level" min="1" max="5" value="3" required>
+                        <small class="text-muted">1 = Niedrig, 5 = Kritisch</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="color" class="form-label">Farbe</label>
+                        <input type="color" class="form-control" id="color" value="#6c757d">
+                    </div>
+                    <div class="mb-3">
+                        <label for="response_time_hours" class="form-label">Response Time (Stunden)</label>
+                        <input type="number" class="form-control" id="response_time_hours" value="24" min="1">
+                        <small class="text-muted">Zeit bis zur ersten Reaktion</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="resolution_time_hours" class="form-label">Resolution Time (Stunden)</label>
+                        <input type="number" class="form-control" id="resolution_time_hours" value="72" min="1">
+                        <small class="text-muted">Zeit bis zur Lösung</small>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="auto_escalate">
+                        <label class="form-check-label" for="auto_escalate">Automatische Eskalation</label>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_active" checked>
+                        <label class="form-check-label" for="is_active">Aktiv</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="savePriority()">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let priorityModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    priorityModal = new bootstrap.Modal(document.getElementById('priorityModal'));
+});
+
+function showAddPriorityModal() {
+    document.getElementById('modalTitle').textContent = 'Neue Priorität';
+    document.getElementById('priorityForm').reset();
+    document.getElementById('priorityId').value = '';
+    document.getElementById('level').value = '3';
+    document.getElementById('color').value = '#6c757d';
+    document.getElementById('response_time_hours').value = '24';
+    document.getElementById('resolution_time_hours').value = '72';
+    document.getElementById('auto_escalate').checked = false;
+    document.getElementById('is_active').checked = true;
+    priorityModal.show();
+}
+
+async function editPriority(id) {
+    // Hole aktuelle Daten aus der Tabelle
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    const cells = row.cells;
+
+    document.getElementById('modalTitle').textContent = 'Priorität bearbeiten';
+    document.getElementById('priorityId').value = id;
+    document.getElementById('name').value = cells[0].querySelector('.badge').textContent.trim();
+    document.getElementById('level').value = cells[1].querySelector('strong').textContent.trim();
+    document.getElementById('color').value = cells[2].querySelector('input').value;
+    document.getElementById('response_time_hours').value = cells[3].textContent;
+    document.getElementById('resolution_time_hours').value = cells[4].textContent;
+    document.getElementById('auto_escalate').checked = cells[5].textContent.includes('Ja');
+    document.getElementById('is_active').checked = cells[6].textContent.includes('Aktiv');
+
+    priorityModal.show();
+}
+
+async function savePriority() {
+    const id = document.getElementById('priorityId').value;
+    const data = {
+        name: document.getElementById('name').value,
+        level: parseInt(document.getElementById('level').value),
+        color: document.getElementById('color').value,
+        response_time_hours: parseInt(document.getElementById('response_time_hours').value),
+        resolution_time_hours: parseInt(document.getElementById('resolution_time_hours').value),
+        auto_escalate: document.getElementById('auto_escalate').checked,
+        is_active: document.getElementById('is_active').checked
+    };
+
+    const url = id ? `/tickets/api/priority/${id}` : '/tickets/api/priority';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const response = await secureFetch(url, {method: method, body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            priorityModal.hide();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showErrorToast('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        showInfoToast('Fehler beim Speichern: ' + error.message);
+    }
+}
+
+async function deletePriority(id) {
+    if (!confirm('Möchten Sie diese Priorität wirklich löschen?')) {
+        return;
+    }
+
+    try {
+        const response = await secureFetch(`/tickets/api/priority/${id}`, {method: 'DELETE'});
+
+        const result = await response.json();
+
+        if (result.success) {
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showErrorToast('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        showInfoToast('Fehler beim Löschen: ' + error.message);
+    }
+}
+</script>
+
+{% include 'tickets/_toast_notifications.html' %}
+
+{% endblock %}

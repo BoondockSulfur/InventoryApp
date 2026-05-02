@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Kategorien verwalten - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-tag"></i> Ticket-Kategorien</h2>
+                    <p class="text-muted">Kategorien mit Farben, Icons und SLA-Zeiten verwalten</p>
+                </div>
+                <a href="{{ url_for('tickets.settings') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Kategorien</h5>
+                    <button class="btn btn-light btn-sm" onclick="showAddModal()">
+                        <i class="bi bi-plus-circle"></i> Neue Kategorie
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Beschreibung</th>
+                                    <th>Farbe</th>
+                                    <th>Icon</th>
+                                    <th>SLA (h)</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table">
+                                {% if categories %}
+                                    {% for category in categories %}
+                                    <tr data-id="{{ category.id }}">
+                                        <td><span class="badge" style="background-color: {{ category.color }}">{{ category.name }}</span></td>
+                                        <td>{{ category.description or '-' }}</td>
+                                        <td><input type="color" value="{{ category.color }}" disabled style="width: 40px; height: 30px;"></td>
+                                        <td><i class="bi bi-{{ category.icon }}"></i> {{ category.icon }}</td>
+                                        <td>{{ category.sla_hours }}</td>
+                                        <td>
+                                            {% if category.is_active %}
+                                                <span class="badge bg-success">Aktiv</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inaktiv</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="editCategory({{ category.id }})">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteCategory({{ category.id }})">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr id="no-data">
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                                            <p class="mt-2">Keine Kategorien vorhanden</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Erstellen/Bearbeiten -->
+<div class="modal fade" id="categoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="bi bi-tag-fill me-2"></i>Neue Kategorie
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId">
+
+                    <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-2"></i>Grundinformationen</h6>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="name" class="form-label fw-bold">
+                                Kategorie-Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="name" required placeholder="z.B. Support, Bug, Feature">
+                            <div class="form-text">Eindeutiger Name für die Kategorie</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="color" class="form-label fw-bold">Farbe</label>
+                            <input type="color" class="form-control form-control-color w-100" id="color" value="#6c757d" title="Wähle eine Farbe">
+                            <div class="form-text">Visuelle Kennzeichnung</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-bold">Beschreibung</label>
+                        <textarea class="form-control" id="description" rows="2" placeholder="Optionale Beschreibung der Kategorie"></textarea>
+                        <div class="form-text">Hilft Benutzern die Kategorie besser zu verstehen</div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-palette me-2"></i>Darstellung</h6>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="icon" class="form-label fw-bold">Icon</label>
+                            <input type="text" class="form-control" id="icon" value="tag" placeholder="z.B. tag, bug, gear, folder">
+                            <div class="form-text">
+                                Bootstrap Icon Name -
+                                <a href="https://icons.getbootstrap.com/" target="_blank" class="text-decoration-none">
+                                    <i class="bi bi-box-arrow-up-right"></i> Alle Icons ansehen
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Vorschau</label>
+                            <div class="border rounded p-2 text-center">
+                                <i class="bi bi-tag" id="iconPreview" style="font-size: 32px;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-clock-history me-2"></i>SLA-Einstellungen</h6>
+                    <div class="mb-3">
+                        <label for="sla_hours" class="form-label fw-bold">Standard SLA (Stunden)</label>
+                        <input type="number" class="form-control" id="sla_hours" value="24" min="1" max="168">
+                        <div class="form-text">Standard-Bearbeitungszeit für Tickets dieser Kategorie (1-168 Stunden)</div>
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" role="switch" id="is_active" checked>
+                        <label class="form-check-label fw-bold" for="is_active">
+                            <i class="bi bi-toggle-on me-1"></i>Kategorie ist aktiv
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Abbrechen
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveCategory()">
+                    <i class="bi bi-check-circle me-1"></i>Speichern
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'tickets/_toast_notifications.html' %}
+
+<script>
+let categoryModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+
+    // Icon preview update
+    const iconInput = document.getElementById('icon');
+    const iconPreview = document.getElementById('iconPreview');
+
+    iconInput.addEventListener('input', function() {
+        const iconName = this.value.trim();
+        iconPreview.className = `bi bi-${iconName}`;
+        iconPreview.style.fontSize = '32px';
+    });
+});
+
+function showAddModal() {
+    document.getElementById('modalTitle').innerHTML = '<i class="bi bi-tag-fill me-2"></i>Neue Kategorie';
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryId').value = '';
+    document.getElementById('color').value = '#6c757d';
+    document.getElementById('icon').value = 'tag';
+    document.getElementById('iconPreview').className = 'bi bi-tag';
+    document.getElementById('sla_hours').value = '24';
+    document.getElementById('is_active').checked = true;
+    categoryModal.show();
+}
+
+async function editCategory(id) {
+    // Hole aktuelle Daten aus der Tabelle
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    const cells = row.cells;
+
+    document.getElementById('modalTitle').innerHTML = '<i class="bi bi-tag-fill me-2"></i>Kategorie bearbeiten';
+    document.getElementById('categoryId').value = id;
+    document.getElementById('name').value = cells[0].querySelector('.badge').textContent;
+    document.getElementById('description').value = cells[1].textContent !== '-' ? cells[1].textContent : '';
+    document.getElementById('color').value = cells[2].querySelector('input').value;
+
+    const iconName = cells[3].textContent.trim().split(' ')[1];
+    document.getElementById('icon').value = iconName;
+    document.getElementById('iconPreview').className = `bi bi-${iconName}`;
+
+    document.getElementById('sla_hours').value = cells[4].textContent;
+    document.getElementById('is_active').checked = cells[5].textContent.includes('Aktiv');
+
+    categoryModal.show();
+}
+
+async function saveCategory() {
+    const id = document.getElementById('categoryId').value;
+    const data = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        color: document.getElementById('color').value,
+        icon: document.getElementById('icon').value,
+        sla_hours: parseInt(document.getElementById('sla_hours').value),
+        is_active: document.getElementById('is_active').checked
+    };
+
+    const url = id ? `/tickets/api/category/${id}` : '/tickets/api/category';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const response = await secureFetch(url, {
+            method: method,
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            categoryModal.hide();
+            showSuccessToast(id ? 'Kategorie erfolgreich aktualisiert!' : 'Kategorie erfolgreich erstellt!');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showErrorToast('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        showErrorToast('Fehler beim Speichern: ' + error.message);
+    }
+}
+
+async function deleteCategory(id) {
+    if (!confirm('Möchten Sie diese Kategorie wirklich löschen?')) {
+        return;
+    }
+
+    try {
+        const response = await secureFetch(`/tickets/api/category/${id}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showSuccessToast('Kategorie erfolgreich gelöscht!');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showErrorToast('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        showErrorToast('Fehler beim Löschen: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

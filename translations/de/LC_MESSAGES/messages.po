@@ -1,0 +1,234 @@
+# German translations for InventoryApp.
+# Copyright (C) 2025
+# This file is distributed under the same license as the InventoryApp project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: InventoryApp 2.3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-21 12:00+0100\n"
+"PO-Revision-Date: 2025-12-21 12:00+0100\n"
+"Last-Translator: \n"
+"Language: de\n"
+"Language-Team: de <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+# Common
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Items"
+msgstr "Artikel"
+
+msgid "Loans"
+msgstr "Ausleihen"
+
+msgid "Users"
+msgstr "Benutzer"
+
+msgid "Admin"
+msgstr "Administration"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Logout"
+msgstr "Abmelden"
+
+msgid "Login"
+msgstr "Anmelden"
+
+msgid "Welcome"
+msgstr "Willkommen"
+
+# Items
+msgid "Add Item"
+msgstr "Artikel hinzufügen"
+
+msgid "Edit Item"
+msgstr "Artikel bearbeiten"
+
+msgid "Delete Item"
+msgstr "Artikel löschen"
+
+msgid "Item Name"
+msgstr "Artikelname"
+
+msgid "Description"
+msgstr "Beschreibung"
+
+msgid "Serial Number"
+msgstr "Seriennummer"
+
+msgid "Category"
+msgstr "Kategorie"
+
+msgid "Location"
+msgstr "Standort"
+
+msgid "Quantity"
+msgstr "Menge"
+
+msgid "Available"
+msgstr "Verfügbar"
+
+msgid "Borrowed"
+msgstr "Ausgeliehen"
+
+msgid "Defective"
+msgstr "Defekt"
+
+# Loans
+msgid "Create Loan"
+msgstr "Ausleihe erstellen"
+
+msgid "Return Item"
+msgstr "Artikel zurückgeben"
+
+msgid "Borrower"
+msgstr "Ausleiher"
+
+msgid "Loan Date"
+msgstr "Ausleih-Datum"
+
+msgid "Due Date"
+msgstr "Fälligkeitsdatum"
+
+msgid "Return Date"
+msgstr "Rückgabe-Datum"
+
+msgid "Overdue"
+msgstr "Überfällig"
+
+msgid "Active Loans"
+msgstr "Aktive Ausleihen"
+
+# Reports
+msgid "Reports"
+msgstr "Berichte"
+
+msgid "Generate Report"
+msgstr "Bericht erstellen"
+
+msgid "Export"
+msgstr "Exportieren"
+
+msgid "Download CSV"
+msgstr "CSV herunterladen"
+
+msgid "Download Excel"
+msgstr "Excel herunterladen"
+
+msgid "Download PDF"
+msgstr "PDF herunterladen"
+
+# Analytics
+msgid "Analytics"
+msgstr "Analysen"
+
+msgid "Inventory Overview"
+msgstr "Inventar-Übersicht"
+
+msgid "Loan Timeline"
+msgstr "Ausleihen-Zeitverlauf"
+
+msgid "Item Status"
+msgstr "Artikel-Status"
+
+msgid "Location Distribution"
+msgstr "Standort-Verteilung"
+
+# Users
+msgid "Add User"
+msgstr "Benutzer hinzufügen"
+
+msgid "Edit User"
+msgstr "Benutzer bearbeiten"
+
+msgid "Username"
+msgstr "Benutzername"
+
+msgid "Email"
+msgstr "E-Mail"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Role"
+msgstr "Rolle"
+
+msgid "Admin"
+msgstr "Administrator"
+
+msgid "Manager"
+msgstr "Manager"
+
+msgid "User"
+msgstr "Benutzer"
+
+# Messages
+msgid "Successfully created"
+msgstr "Erfolgreich erstellt"
+
+msgid "Successfully updated"
+msgstr "Erfolgreich aktualisiert"
+
+msgid "Successfully deleted"
+msgstr "Erfolgreich gelöscht"
+
+msgid "Error occurred"
+msgstr "Fehler aufgetreten"
+
+msgid "Invalid data"
+msgstr "Ungültige Daten"
+
+msgid "Access denied"
+msgstr "Zugriff verweigert"
+
+# Buttons
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Submit"
+msgstr "Absenden"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Edit"
+msgstr "Bearbeiten"
+
+msgid "View"
+msgstr "Ansehen"
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Search"
+msgstr "Suchen"
+
+msgid "Filter"
+msgstr "Filtern"
+
+msgid "Clear"
+msgstr "Löschen"
+
+# Validation
+msgid "This field is required"
+msgstr "Dieses Feld ist erforderlich"
+
+msgid "Invalid email address"
+msgstr "Ungültige E-Mail-Adresse"
+
+msgid "Passwords must match"
+msgstr "Passwörter müssen übereinstimmen"
+
+msgid "Password too short"
+msgstr "Passwort zu kurz"

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Rollen & Berechtigungen</h1>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+      <i class="bi bi-plus-circle"></i> Neue Rolle erstellen
+    </button>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="row">
+    {% for role in roles %}
+      <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card h-100">
+          <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{ role.name }}</h5>
+            {% if role.name not in ['admin', 'verwaltung', 'mitarbeiter', 'kunde'] %}
+              <span class="badge bg-light text-dark">Benutzerdefiniert</span>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            <h6 class="text-muted mb-2">Berechtigungen ({{ role.permissions|length }})</h6>
+            <div class="permissions-preview" style="max-height: 150px; overflow-y: auto;">
+              {% if role.permissions %}
+                <ul class="list-unstyled small">
+                  {% for perm in role.permissions[:5] %}
+                    <li><i class="bi bi-check-circle text-success"></i> {{ perm.name }}</li>
+                  {% endfor %}
+                  {% if role.permissions|length > 5 %}
+                    <li class="text-muted">... und {{ role.permissions|length - 5 }} weitere</li>
+                  {% endif %}
+                </ul>
+              {% else %}
+                <p class="text-muted small">Keine Berechtigungen zugewiesen</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+            <a href="{{ url_for('admin.edit_role', role_name=role.name) }}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-pencil"></i> Bearbeiten
+            </a>
+            {% if role.name not in ['admin', 'verwaltung', 'mitarbeiter', 'kunde'] %}
+              <button class="btn btn-sm btn-outline-danger"
+                      onclick="confirmDeleteRole('{{ role.name }}')">
+                <i class="bi bi-trash"></i> Löschen
+              </button>
+            {% else %}
+              <button class="btn btn-sm btn-outline-secondary" disabled title="System-Rolle kann nicht gelöscht werden">
+                <i class="bi bi-lock"></i> Geschützt
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Modal: Neue Rolle erstellen -->
+<div class="modal fade" id="addRoleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('admin.add_role') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Neue Rolle erstellen</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="role_name" class="form-label">Rollenname</label>
+            <input type="text" class="form-control" id="role_name" name="role_name"
+                   required pattern="[a-zA-Z0-9_]+"
+                   title="Nur Buchstaben, Zahlen und Unterstriche erlaubt">
+            <small class="text-muted">Verwenden Sie nur Kleinbuchstaben, Zahlen und Unterstriche</small>
+          </div>
+          <div class="mb-3">
+            <label for="role_description" class="form-label">Beschreibung (optional)</label>
+            <textarea class="form-control" id="role_description" name="role_description" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          <button type="submit" class="btn btn-success">Rolle erstellen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmDeleteRole(roleName) {
+  if (confirm(`Möchten Sie die Rolle "${roleName}" wirklich löschen?\n\nBenutzer mit dieser Rolle werden auf die Standard-Rolle zurückgesetzt.`)) {
+    // Erstelle ein unsichtbares Formular für DELETE Request
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/admin/roles/${roleName}/delete`;
+
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrf_token';
+    csrfInput.value = '{{ csrf_token() }}';
+    form.appendChild(csrfInput);
+
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+</script>
+{% endblock %}

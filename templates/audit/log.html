@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Audit Log{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-file-text"></i> Audit Log</h1>
+        <a href="{{ url_for('export_audit_log') }}" class="btn btn-outline-primary">
+            <i class="bi bi-download"></i> Exportieren
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="user" class="form-control" placeholder="Benutzer">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="action" class="form-control" placeholder="Aktion">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="date" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Zeitstempel</th>
+                        <th>Benutzer</th>
+                        <th>Aktion</th>
+                        <th>Entity</th>
+                        <th>Änderungen</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in audit_entries %}
+                    <tr>
+                        <td>{{ entry.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</td>
+                        <td>{{ entry.user.username if entry.user else 'System' }}</td>
+                        <td><code>{{ entry.action }}</code></td>
+                        <td>{{ entry.entity_type }} #{{ entry.entity_id }}</td>
+                        <td>
+                            {% if entry.changes %}
+                            <small class="text-muted">{{ entry.changes[:50] }}...</small>
+                            {% else %}-{% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ entry.ip_address or '-' }}</small></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Keine Einträge gefunden</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if pagination %}
+            <nav>
+                <ul class="pagination">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ pagination.prev_num }}">Zurück</a>
+                    </li>
+                    {% endif %}
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ pagination.next_num }}">Weiter</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

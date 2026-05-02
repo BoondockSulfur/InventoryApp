@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}System Logs{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-file-text"></i> System Logs</h2>
+                <div>
+                    <button class="btn btn-outline-danger" id="cleanup-logs-btn">
+                        <i class="bi bi-trash"></i> Alte Logs löschen
+                    </button>
+                    <button class="btn btn-outline-primary" id="refresh-logs-btn">
+                        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs mb-3" id="logTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="app-logs-tab" data-bs-toggle="tab"
+                            data-bs-target="#app-logs" type="button" role="tab">
+                        <i class="bi bi-terminal"></i> Application Logs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="api-logs-tab" data-bs-toggle="tab"
+                            data-bs-target="#api-logs" type="button" role="tab">
+                        <i class="bi bi-code-square"></i> API Logs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="error-logs-tab" data-bs-toggle="tab"
+                            data-bs-target="#error-logs" type="button" role="tab">
+                        <i class="bi bi-exclamation-triangle"></i> Error Logs
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="logTabsContent">
+                <!-- Application Logs -->
+                <div class="tab-pane fade show active" id="app-logs" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Log Files</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="log-files-list">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Logs -->
+                <div class="tab-pane fade" id="api-logs" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">API Request Logs</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="api-logs-content">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> API Request Logging wird geladen...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Logs -->
+                <div class="tab-pane fade" id="error-logs" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Error Logs</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="error-logs-content">
+                                <pre class="bg-dark text-light p-3" style="max-height: 600px; overflow-y: auto;" id="error-log-viewer"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Viewer Modal -->
+<div class="modal fade" id="logViewerModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logViewerTitle">Log File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label>Lines to display:</label>
+                    <select class="form-select form-select-sm d-inline-block w-auto ms-2" id="logLinesSelect">
+                        <option value="50">Last 50 lines</option>
+                        <option value="100" selected>Last 100 lines</option>
+                        <option value="500">Last 500 lines</option>
+                        <option value="1000">Last 1000 lines</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary ms-2" id="reloadLogBtn">
+                        <i class="bi bi-arrow-clockwise"></i> Reload
+                    </button>
+                </div>
+                <pre class="bg-dark text-light p-3" style="max-height: 500px; overflow-y: auto; font-size: 12px;" id="logContent"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="downloadLogBtn">
+                    <i class="bi bi-download"></i> Download
+                </button>
+                <button type="button" class="btn btn-warning" id="archiveLogBtn">
+                    <i class="bi bi-archive"></i> Archive
+                </button>
+                <button type="button" class="btn btn-danger" id="deleteLogBtn">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.log-file-item {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+}
+.log-file-item:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+.log-file-name {
+    font-weight: 600;
+    color: #0d6efd;
+    cursor: pointer;
+}
+.log-file-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+#logContent {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+</style>
+
+<script>
+let currentLogFile = null;
+
+// Load log files on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadLogFiles();
+    loadErrorLogs();
+
+    // Tab change handlers
+    document.getElementById('api-logs-tab').addEventListener('click', loadApiLogs);
+    document.getElementById('error-logs-tab').addEventListener('click', loadErrorLogs);
+});
+
+// Refresh button
+document.getElementById('refresh-logs-btn').addEventListener('click', function() {
+    loadLogFiles();
+});
+
+// Cleanup button
+document.getElementById('cleanup-logs-btn').addEventListener('click', function() {
+    if (!confirm('Logs älter als 30 Tage löschen?')) return;
+
+    fetch('/api/logs/cleanup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ days: 30 })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`${data.deleted_count} Logs gelöscht (${data.size_freed_mb} MB freigegeben)`);
+            loadLogFiles();
+        } else {
+            alert('Fehler: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Fehler beim Löschen: ' + error);
+    });
+});
+
+// Load log files list
+function loadLogFiles() {
+    fetch('/api/logs')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('log-files-list');
+
+            if (data.total_files === 0) {
+                container.innerHTML = '<div class="alert alert-info">Keine Log-Dateien gefunden.</div>';
+                return;
+            }
+
+            let html = `<div class="mb-3"><strong>${data.total_files} Files</strong> (${data.total_size_mb} MB total)</div>`;
+
+            data.files.forEach(file => {
+                html += `
+                    <div class="log-file-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="log-file-name" onclick="viewLog('${file.name}')">
+                                    <i class="bi bi-file-earmark-text"></i> ${file.name}
+                                </div>
+                                <div class="log-file-meta">
+                                    ${file.size_mb} MB • Modified: ${file.modified_str}
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewLog('${file.name}')">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" onclick="downloadLog('${file.name}')">
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning" onclick="archiveLog('${file.name}')">
+                                    <i class="bi bi-archive"></i> Archive
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteLog('${file.name}')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        })
+        .catch(error => {
+            document.getElementById('log-files-list').innerHTML =
+                `<div class="alert alert-danger">Fehler beim Laden: ${error}</div>`;
+        });
+}
+
+// View log file
+function viewLog(filename) {
+    currentLogFile = filename;
+    document.getElementById('logViewerTitle').textContent = filename;
+
+    const lines = document.getElementById('logLinesSelect').value;
+
+    fetch(`/api/logs/${filename}?lines=${lines}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('logContent').textContent = 'Error: ' + data.error;
+            } else {
+                document.getElementById('logContent').textContent = data.content;
+            }
+
+            new bootstrap.Modal(document.getElementById('logViewerModal')).show();
+        })
+        .catch(error => {
+            alert('Fehler beim Laden: ' + error);
+        });
+}
+
+// Reload log in modal
+document.getElementById('reloadLogBtn').addEventListener('click', function() {
+    if (currentLogFile) {
+        viewLog(currentLogFile);
+    }
+});
+
+// Download log
+function downloadLog(filename) {
+    window.open(`/api/logs/${filename}/download`, '_blank');
+}
+
+document.getElementById('downloadLogBtn').addEventListener('click', function() {
+    if (currentLogFile) {
+        downloadLog(currentLogFile);
+    }
+});
+
+// Archive log
+function archiveLog(filename) {
+    if (!confirm(`Log "${filename}" archivieren (komprimieren)?`)) return;
+
+    fetch(`/api/logs/${filename}/archive`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Archiviert: ${data.message}\nKomprimierung: ${data.compression_ratio}%`);
+            loadLogFiles();
+            bootstrap.Modal.getInstance(document.getElementById('logViewerModal'))?.hide();
+        } else {
+            alert('Fehler: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Fehler beim Archivieren: ' + error);
+    });
+}
+
+document.getElementById('archiveLogBtn').addEventListener('click', function() {
+    if (currentLogFile) {
+        archiveLog(currentLogFile);
+    }
+});
+
+// Delete log
+function deleteLog(filename) {
+    if (!confirm(`Log "${filename}" wirklich löschen?`)) return;
+
+    fetch(`/api/logs/${filename}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Gelöscht: ${data.message} (${data.size_freed_mb} MB freigegeben)`);
+            loadLogFiles();
+            bootstrap.Modal.getInstance(document.getElementById('logViewerModal'))?.hide();
+        } else {
+            alert('Fehler: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Fehler beim Löschen: ' + error);
+    });
+}
+
+document.getElementById('deleteLogBtn').addEventListener('click', function() {
+    if (currentLogFile) {
+        deleteLog(currentLogFile);
+    }
+});
+
+// Load API logs
+function loadApiLogs() {
+    // TODO: Implement API request logging
+    document.getElementById('api-logs-content').innerHTML = `
+        <div class="alert alert-warning">
+            <i class="bi bi-info-circle"></i> API Request Logging ist geplant für Q1 2025.
+            <br><br>
+            Aktuell können Sie API-Aktivitäten in den Application Logs sehen.
+        </div>
+    `;
+}
+
+// Load error logs
+function loadErrorLogs() {
+    fetch('/api/logs/app.log?lines=500')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('error-log-viewer').textContent = 'Error: ' + data.error;
+            } else {
+                // Filter nur ERROR Zeilen
+                const errorLines = data.content.split('\n').filter(line =>
+                    line.includes('ERROR') || line.includes('Exception') || line.includes('Traceback')
+                );
+
+                if (errorLines.length === 0) {
+                    document.getElementById('error-log-viewer').textContent = 'Keine Fehler gefunden! ✅';
+                } else {
+                    document.getElementById('error-log-viewer').textContent = errorLines.join('\n');
+                }
+            }
+        })
+        .catch(error => {
+            document.getElementById('error-log-viewer').textContent = 'Fehler beim Laden: ' + error;
+        });
+}
+</script>
+{% endblock %}

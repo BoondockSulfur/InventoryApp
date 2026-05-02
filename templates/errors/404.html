@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <h1 class="display-1">404</h1>
+      <h2>Seite nicht gefunden</h2>
+      <p class="lead">Die angeforderte Seite existiert nicht.</p>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Zurück zum Dashboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

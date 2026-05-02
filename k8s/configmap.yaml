@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventoryapp-config
+data:
+  FLASK_ENV: "production"
+  DATABASE_URL: "postgresql://inventoryapp:password@postgres:5432/inventoryapp"
+  REDIS_URL: "redis://redis:6379/0"
+  SESSION_COOKIE_SECURE: "true"
+  SESSION_COOKIE_HTTPONLY: "true"

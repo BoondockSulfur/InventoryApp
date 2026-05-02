@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventoryapp-web
+  labels:
+    app: inventoryapp
+    component: web
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: inventoryapp
+      component: web
+  template:
+    metadata:
+      labels:
+        app: inventoryapp
+        component: web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: web
+        image: inventoryapp:2.2.0
+        imagePullPolicy: Always
+
+        ports:
+        - name: http
+          containerPort: 5000
+          protocol: TCP
+
+        envFrom:
+        - configMapRef:
+            name: inventoryapp-config
+        - secretRef:
+            name: inventoryapp-secrets
+
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/static/uploads
+        - name: logs
+          mountPath: /app/logs
+        - name: backups
+          mountPath: /app/backups
+
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: inventoryapp-uploads
+      - name: logs
+        emptyDir: {}
+      - name: backups
+        persistentVolumeClaim:
+          claimName: inventoryapp-backups
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: inventoryapp-uploads
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: inventoryapp-backups
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard

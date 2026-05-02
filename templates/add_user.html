@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h1>Neues Benutzerkonto</h1>
+
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <!-- Benutzername -->
+    <div class="mb-3">
+      {{ form.username.label(class="form-label") }}
+      {{ form.username(class="form-control", placeholder="Benutzername") }}
+      {% if form.username.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.username.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- E-Mail -->
+    <div class="mb-3">
+      {{ form.email.label(class="form-label") }}
+      {{ form.email(class="form-control", placeholder="E-Mail-Adresse") }}
+      {% if form.email.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.email.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Passwort -->
+    <div class="mb-3">
+      {{ form.password.label(class="form-label") }}
+      {{ form.password(class="form-control", placeholder="Passwort") }}
+      {% if form.password.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.password.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Passwort wiederholen -->
+    <div class="mb-3">
+      {{ form.password2.label(class="form-label") }}
+      {{ form.password2(class="form-control", placeholder="Passwort wiederholen") }}
+      {% if form.password2.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.password2.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Rolle -->
+    <div class="mb-3">
+      {{ form.role.label(class="form-label") }}
+      {{ form.role(class="form-select") }}
+      {% if form.role.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.role.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Gruppen-Nr. (nur für Kunden) -->
+    <div class="mb-3">
+      {{ form.group_number.label(class="form-label") }}
+      {{ form.group_number(class="form-control", placeholder="Gruppen-Nr. (z. B. 12345)") }}
+      <small class="form-text text-muted">
+        <i class="bi bi-info-circle"></i> Nur für Kunden relevant - wird für die Organisation von Kundengruppen verwendet
+      </small>
+      {% if form.group_number.errors %}
+        <div class="invalid-feedback d-block">
+          {% for err in form.group_number.errors %}
+            {{ err }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Gruppen (Neues Berechtigungssystem) -->
+    {% if groups %}
+    <div class="mb-3">
+      <label class="form-label">Gruppen</label>
+      <div class="card">
+        <div class="card-body">
+          <p class="text-muted small mb-3">
+            <i class="bi bi-info-circle"></i> Weisen Sie den Benutzer zu Gruppen zu, um Berechtigungen zu verwalten. Gruppen können mehrere Rollen haben.
+          </p>
+          {% for group in groups %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="group_ids" value="{{ group.id }}" id="group_{{ group.id }}">
+            <label class="form-check-label" for="group_{{ group.id }}">
+              <strong>{{ group.name }}</strong>
+              {% if group.description %}
+              <br><small class="text-muted">{{ group.description }}</small>
+              {% endif %}
+              {% if group.roles %}
+              <br><small class="text-muted">
+                <i class="bi bi-shield-check"></i> Rollen:
+                {% for role in group.roles %}
+                  <span class="badge bg-secondary">{{ role.name }}</span>
+                {% endfor %}
+              </small>
+              {% endif %}
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <small class="form-text text-muted">
+        <i class="bi bi-lightbulb"></i> Tipp: Sie können Gruppen unter "Admin" → "Gruppen verwalten" anlegen und konfigurieren
+      </small>
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+      {{ form.submit(class="btn btn-success") }}
+      <a href="{{ url_for('users') }}" class="btn btn-secondary ms-2">Abbrechen</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

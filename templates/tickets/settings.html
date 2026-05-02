@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket-Einstellungen - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-cog"></i> Ticket-System Einstellungen</h2>
+            <p class="text-muted">Verwalten Sie Kategorien, Prioritäten, Status, Custom Fields und SLA-Regeln</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-tags-fill text-primary" style="font-size: 48px;"></i>
+                    </div>
+                    <h5 class="card-title">Kategorien</h5>
+                    <p class="card-text">Ticket-Kategorien mit Farben, Icons und SLA-Zeiten verwalten</p>
+                    <a href="/tickets/settings/categories" class="btn btn-primary w-100">
+                        <i class="bi bi-gear"></i> Verwalten
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-warning shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 48px;"></i>
+                    </div>
+                    <h5 class="card-title">Prioritäten</h5>
+                    <p class="card-text">Prioritätsstufen mit Response- und Resolution-Zeiten definieren</p>
+                    <a href="/tickets/settings/priorities" class="btn btn-warning w-100">
+                        <i class="bi bi-gear"></i> Verwalten
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-info shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-diagram-3-fill text-info" style="font-size: 48px;"></i>
+                    </div>
+                    <h5 class="card-title">Status & Workflows</h5>
+                    <p class="card-text">Status-Workflows und erlaubte Übergänge konfigurieren</p>
+                    <a href="/tickets/settings/statuses" class="btn btn-info w-100">
+                        <i class="bi bi-gear"></i> Verwalten
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-success shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-input-cursor-text-fill text-success" style="font-size: 48px;"></i>
+                    </div>
+                    <h5 class="card-title">Custom Fields</h5>
+                    <p class="card-text">Benutzerdefinierte Felder für Tickets erstellen</p>
+                    <a href="/tickets/settings/custom-fields" class="btn btn-success w-100">
+                        <i class="bi bi-gear"></i> Verwalten
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-secondary shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 48px;"></i>
+                    </div>
+                    <h5 class="card-title">Vorlagen</h5>
+                    <p class="card-text">Wiederverwendbare Ticket-Vorlagen definieren</p>
+                    <a href="/tickets/settings/templates" class="btn btn-secondary w-100">
+                        <i class="bi bi-gear"></i> Verwalten
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-danger shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-clock-history text-danger" style="font-size: 48px;"></i>
+                    </div>
+                    <h5 class="card-title">SLA-Regeln</h5>
+                    <p class="card-text">Service Level Agreements und Eskalations-Regeln</p>
+                    <a href="/tickets/settings/sla" class="btn btn-danger w-100">
+                        <i class="bi bi-gear"></i> Verwalten
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Dokumentation</h5>
+                </div>
+                <div class="card-body">
+                    <p>Für eine vollständige Anleitung zur Ticket-System Konfiguration siehe:</p>
+                    <a href="{{ url_for('tickets.documentation') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-book"></i> Ticket-System Handbuch öffnen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

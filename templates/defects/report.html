@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Defekt melden - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="mb-4">
+                <i class="bi bi-exclamation-triangle"></i> Defekt melden
+            </h1>
+
+            <form method="post" novalidate class="needs-validation" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+
+                <!-- Gegenstand auswählen -->
+                <div class="mb-3">
+                    {{ form.item.label(class="form-label") }}
+                    {{ form.item(class="form-control", placeholder="Wählen Sie den defekten Gegenstand") }}
+                    {% if form.item.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.item.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Defekttyp -->
+                <div class="mb-3">
+                    {{ form.defect_type.label(class="form-label") }}
+                    {{ form.defect_type(class="form-select") }}
+                    {% if form.defect_type.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.defect_type.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Schweregrad -->
+                <div class="mb-3">
+                    {{ form.severity.label(class="form-label") }}
+                    <div>
+                        {% for subfield in form.severity %}
+                            <div class="form-check form-check-inline">
+                                {{ subfield(class="form-check-input") }}
+                                {{ subfield.label(class="form-check-label") }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.severity.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.severity.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Beschreibung des Defekts -->
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", rows="4", placeholder="Detaillierte Beschreibung des Defekts...") }}
+                    <small class="form-text text-muted">Bitte beschreiben Sie den Defekt so genau wie möglich</small>
+                    {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.description.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Fotos/Evidenz -->
+                <div class="mb-3">
+                    {{ form.photos.label(class="form-label") }}
+                    {{ form.photos(class="form-control", accept="image/*") }}
+                    <small class="form-text text-muted">Fotos helfen bei der Diagnose. Max. 5 MB pro Bild</small>
+                    {% if form.photos.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.photos.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Meldedatum -->
+                <div class="mb-3">
+                    {{ form.reported_date.label(class="form-label") }}
+                    {{ form.reported_date(class="form-control", type="date") }}
+                    {% if form.reported_date.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.reported_date.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Sofortmaßnahmen -->
+                <div class="mb-3">
+                    {{ form.immediate_action.label(class="form-label") }}
+                    {{ form.immediate_action(class="form-control", rows="2", placeholder="z.B. Gegenstand aus dem Verkehr gezogen") }}
+                    {% if form.immediate_action.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.immediate_action.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Kontakt-Information -->
+                <div class="mb-3">
+                    {{ form.reporter_contact.label(class="form-label") }}
+                    {{ form.reporter_contact(class="form-control", placeholder="Telefon oder E-Mail") }}
+                    {% if form.reporter_contact.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.reporter_contact.errors %}
+                                <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                    {{ form.submit(class="btn btn-danger") }}
+                    <a href="{{ url_for('defect_list') }}" class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Box -->
+        <div class="col-lg-4">
+            <div class="card bg-light border-warning">
+                <div class="card-body">
+                    <h5 class="card-title text-warning"><i class="bi bi-info-circle"></i> Wichtig</h5>
+                    <p class="card-text small">
+                        Ein Defekt-Bericht wird sofort an das Wartungsteam weitergeleitet.
+                    </p>
+                    <hr>
+                    <p class="small mb-0"><strong>Schweregrade:</strong></p>
+                    <ul class="small">
+                        <li><span class="badge bg-success">Gering</span> - Funktioniert noch</li>
+                        <li><span class="badge bg-warning">Mittel</span> - Eingeschränkte Funktion</li>
+                        <li><span class="badge bg-danger">Kritisch</span> - Nicht nutzbar</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

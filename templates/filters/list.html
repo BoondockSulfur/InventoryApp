@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Gespeicherte Filter - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="bi bi-funnel"></i> Gespeicherte Such-Filter</h1>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" disabled title="Funktion noch nicht implementiert">
+                <i class="bi bi-plus-circle"></i> Neuer Filter
+            </button>
+        </div>
+    </div>
+
+    {% if filters %}
+        <div class="row">
+            <!-- Meine Filter -->
+            <div class="col-lg-8">
+                <h5 class="mb-3">Meine Filter</h5>
+                <div class="row">
+                    {% for filter in filters %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="bi bi-funnel"></i> {{ filter.name }}
+                                    </h6>
+                                    <p class="card-text text-muted small">
+                                        {{ filter.description or 'Keine Beschreibung' }}
+                                    </p>
+
+                                    <!-- Filter-Bedingungen -->
+                                    <div class="small mb-2">
+                                        <strong>Bedingungen:</strong>
+                                        <ul class="mb-0 mt-1">
+                                            {% if filter.category %}
+                                                <li>Kategorie: <code>{{ filter.category }}</code></li>
+                                            {% endif %}
+                                            {% if filter.location %}
+                                                <li>Standort: <code>{{ filter.location }}</code></li>
+                                            {% endif %}
+                                            {% if filter.status %}
+                                                <li>Status: <code>{{ filter.status }}</code></li>
+                                            {% endif %}
+                                            {% if filter.date_from %}
+                                                <li>Von: <code>{{ filter.date_from }}</code></li>
+                                            {% endif %}
+                                            {% if filter.date_to %}
+                                                <li>Bis: <code>{{ filter.date_to }}</code></li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+
+                                    <small class="text-muted d-block mb-2">
+                                        <i class="bi bi-calendar"></i>
+                                        Erstellt: {{ filter.created_at.strftime('%d.%m.%Y') if filter.created_at else 'N/A' }}
+                                    </small>
+
+                                    <small class="text-muted d-block mb-3">
+                                        {% if filter.is_public %}
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-people"></i> Öffentlich
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-lock"></i> Privat
+                                            </span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <button class="btn btn-sm btn-outline-primary" disabled title="Funktion noch nicht implementiert">
+                                        <i class="bi bi-funnel"></i> Anwenden
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" disabled title="Funktion noch nicht implementiert">
+                                        <i class="bi bi-pencil"></i> Bearbeiten
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" disabled title="Funktion noch nicht implementiert">
+                                        <i class="bi bi-trash"></i> Löschen
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Statistiken -->
+            <div class="col-lg-4">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-bar-chart"></i> Statistiken</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Anzahl Filter:</span>
+                            <strong>{{ filters|length }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Öffentliche Filter:</span>
+                            <strong>{{ filters|selectattr('is_public')|list|length }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Private Filter:</span>
+                            <strong>{{ filters|rejectattr('is_public')|list|length }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-lightbulb"></i> Tipps</h5>
+                        <ul class="small">
+                            <li>Erstellen Sie Filter für häufig verwendete Suchen</li>
+                            <li>Teilen Sie nützliche Filter mit Kollegen</li>
+                            <li>Filter können jederzeit bearbeitet werden</li>
+                            <li>Nutzen Sie komplexe Bedingungen für präzise Suche</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i>
+            <strong>Noch keine Filter erstellt</strong>
+            <p class="mb-0 mt-2">Erstellen Sie einen Filter, um Ihre häufig verwendeten Suchanfragen zu speichern.</p>
+            <button class="btn btn-primary btn-sm mt-3" disabled title="Funktion noch nicht implementiert">
+                <i class="bi bi-plus-circle"></i> Ersten Filter erstellen
+            </button>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

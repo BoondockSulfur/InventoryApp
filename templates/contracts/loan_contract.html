@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leihvertrag #{{ loan.id }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 20px;
+        }
+
+        /* Header Section */
+        .header {
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header .company-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .logo-placeholder {
+            width: 120px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            border-radius: 8px;
+        }
+
+        .company-details {
+            text-align: right;
+            font-size: 10pt;
+            color: #666;
+        }
+
+        .company-name {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        /* Document Title */
+        .doc-title {
+            text-align: center;
+            margin: 40px 0 30px 0;
+        }
+
+        .doc-title h1 {
+            font-size: 24pt;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .doc-title .contract-number {
+            font-size: 12pt;
+            color: #7f8c8d;
+            font-weight: normal;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        .info-box h3 {
+            color: #2c3e50;
+            font-size: 12pt;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-row {
+            display: flex;
+            margin: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: bold;
+            width: 200px;
+            color: #555;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #333;
+        }
+
+        /* Contract Details Table */
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            page-break-inside: avoid;
+        }
+
+        .details-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 11pt;
+        }
+
+        .details-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .details-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        /* Terms Section */
+        .terms-section {
+            margin: 30px 0;
+            page-break-inside: avoid;
+        }
+
+        .terms-section h2 {
+            color: #2c3e50;
+            font-size: 14pt;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .terms-list {
+            list-style: none;
+            counter-reset: term-counter;
+        }
+
+        .terms-list li {
+            counter-increment: term-counter;
+            margin: 12px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .terms-list li:before {
+            content: counter(term-counter) ".";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+        }
+
+        .status-overdue {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #c62828;
+        }
+
+        /* Signature Section */
+        .signature-section {
+            margin-top: 60px;
+            page-break-inside: avoid;
+        }
+
+        .signature-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 80px;
+        }
+
+        .signature-box {
+            width: 45%;
+        }
+
+        .signature-line {
+            border-top: 2px solid #333;
+            padding-top: 8px;
+            margin-top: 60px;
+        }
+
+        .signature-label {
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .signature-info {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 9pt;
+            color: #666;
+            text-align: center;
+        }
+
+        /* Print Optimizations */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        /* Highlights */
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .important-notice {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            page-break-inside: avoid;
+        }
+
+        .important-notice strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-info">
+                <div>
+                    <div class="logo-placeholder">LOGO</div>
+                </div>
+                <div class="company-details">
+                    <div class="company-name">Inventarverwaltung</div>
+                    <div>Musterstraße 123</div>
+                    <div>12345 Musterstadt</div>
+                    <div>Tel: +49 123 456789</div>
+                    <div>Email: kontakt@beispiel.de</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Title -->
+        <div class="doc-title">
+            <h1>Leihvertrag</h1>
+            <p class="contract-number">Vertragsnummer: #{{ loan.id }}</p>
+        </div>
+
+        <!-- Contract Status -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            {% set days_until_due = (loan.due_date - today).days %}
+            {% if loan.return_date %}
+                <span class="status-badge" style="background: #e3f2fd; color: #1565c0; border: 1px solid #1565c0;">Zurückgegeben am {{ loan.return_date.strftime('%d.%m.%Y') }}</span>
+            {% elif loan.due_date < today %}
+                <span class="status-badge status-overdue">Überfällig seit {{ (today - loan.due_date).days }} Tag(en)</span>
+            {% else %}
+                <span class="status-badge status-active">Aktiv</span>
+            {% endif %}
+        </div>
+
+        <!-- Borrower Information -->
+        <div class="info-box">
+            <h3>Entleiher-Informationen</h3>
+            <div class="info-row">
+                <div class="info-label">Name:</div>
+                <div class="info-value">{{ loan.borrower.username }}</div>
+            </div>
+            {% if loan.borrower.email %}
+            <div class="info-row">
+                <div class="info-label">E-Mail:</div>
+                <div class="info-value">{{ loan.borrower.email }}</div>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <div class="info-label">Rolle:</div>
+                <div class="info-value">
+                    {% if loan.borrower.role == 'mitarbeiter' %}
+                        Mitarbeiter
+                    {% elif loan.borrower.role == 'kunde' %}
+                        Teilnehmer/Kunde
+                    {% else %}
+                        {{ loan.borrower.role }}
+                    {% endif %}
+                </div>
+            </div>
+            {% if loan.borrower.role == 'kunde' and loan.borrower.group_number %}
+            <div class="info-row">
+                <div class="info-label">Gruppennummer:</div>
+                <div class="info-value">{{ loan.borrower.group_number }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Item Details Table -->
+        <table class="details-table">
+            <thead>
+                <tr>
+                    <th colspan="2">Ausgeliehener Gegenstand</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight: bold; width: 200px;">Gegenstand:</td>
+                    <td>{{ loan.item.name }}</td>
+                </tr>
+                {% if loan.item.serial %}
+                <tr>
+                    <td style="font-weight: bold;">Seriennummer:</td>
+                    <td><span class="highlight">{{ loan.item.serial }}</span></td>
+                </tr>
+                {% endif %}
+                {% if loan.item.category %}
+                <tr>
+                    <td style="font-weight: bold;">Kategorie:</td>
+                    <td>{{ loan.item.category }}</td>
+                </tr>
+                {% endif %}
+                {% if loan.item.location %}
+                <tr>
+                    <td style="font-weight: bold;">Standort:</td>
+                    <td>{{ loan.item.location }}</td>
+                </tr>
+                {% endif %}
+                {% if loan.item.description %}
+                <tr>
+                    <td style="font-weight: bold;">Beschreibung:</td>
+                    <td>{{ loan.item.description }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Loan Dates -->
+        <div class="info-box">
+            <h3>Leihfristen</h3>
+            <div class="info-row">
+                <div class="info-label">Ausleihdatum:</div>
+                <div class="info-value"><strong>{{ loan.loan_date.strftime('%d.%m.%Y') }}</strong></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Rückgabedatum (geplant):</div>
+                <div class="info-value"><strong>{{ loan.due_date.strftime('%d.%m.%Y') }}</strong></div>
+            </div>
+            {% if loan.return_date %}
+            <div class="info-row">
+                <div class="info-label">Tatsächliche Rückgabe:</div>
+                <div class="info-value"><strong>{{ loan.return_date.strftime('%d.%m.%Y') }}</strong></div>
+            </div>
+            {% else %}
+            <div class="info-row">
+                <div class="info-label">Verbleibende Leihfrist:</div>
+                <div class="info-value">
+                    {% if days_until_due < 0 %}
+                        <strong style="color: #c62828;">Überfällig seit {{ (today - loan.due_date).days }} Tag(en)</strong>
+                    {% else %}
+                        <strong style="color: #2e7d32;">{{ days_until_due }} Tag(e)</strong>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Important Notice for Overdue -->
+        {% if not loan.return_date and loan.due_date < today %}
+        <div class="important-notice">
+            <strong>WICHTIGER HINWEIS:</strong> Dieser Leihvertrag ist überfällig! Bitte geben Sie den Gegenstand umgehend zurück oder kontaktieren Sie die Verwaltung, um eine Fristverlängerung zu beantragen.
+        </div>
+        {% endif %}
+
+        <!-- Terms and Conditions -->
+        <div class="terms-section">
+            <h2>Allgemeine Geschäftsbedingungen für die Ausleihe</h2>
+
+            <ul class="terms-list">
+                <li>
+                    <strong>Sorgfaltspflicht:</strong> Der Entleiher verpflichtet sich, den ausgeliehenen Gegenstand sorgfältig zu behandeln und vor Beschädigung, Verlust oder Diebstahl zu schützen.
+                </li>
+                <li>
+                    <strong>Bestimmungsgemäße Verwendung:</strong> Der Gegenstand darf ausschließlich für den vorgesehenen Zweck verwendet werden. Eine Weitergabe an Dritte ist ohne schriftliche Zustimmung nicht gestattet.
+                </li>
+                <li>
+                    <strong>Rückgabepflicht:</strong> Der Gegenstand ist spätestens am vereinbarten Rückgabedatum in einwandfreiem und vollständigem Zustand zurückzugeben. Bei Beschädigung oder Verlust haftet der Entleiher für die entstandenen Kosten.
+                </li>
+                <li>
+                    <strong>Zustandsprüfung:</strong> Der Entleiher bestätigt, den Gegenstand in einwandfreiem und funktionsfähigem Zustand erhalten zu haben. Mängel sind unverzüglich zu melden.
+                </li>
+                <li>
+                    <strong>Haftung:</strong> Bei verspäteter Rückgabe, Beschädigung oder Verlust kann eine Schadensersatzforderung geltend gemacht werden. Bei grober Fahrlässigkeit haftet der Entleiher in voller Höhe.
+                </li>
+                <li>
+                    <strong>Versicherung:</strong> Der ausgeliehene Gegenstand ist über die Einrichtung versichert. Bei Diebstahl ist umgehend eine Anzeige bei der Polizei zu erstatten und der Leihgeber zu informieren.
+                </li>
+                <li>
+                    <strong>Fristverlängerung:</strong> Eine Verlängerung der Leihfrist ist nur nach vorheriger Absprache und Genehmigung durch die Verwaltung möglich.
+                </li>
+                <li>
+                    <strong>Rückgabeort:</strong> Die Rückgabe erfolgt an dem Ort, an dem der Gegenstand ausgegeben wurde, sofern nichts anderes vereinbart ist.
+                </li>
+                <li>
+                    <strong>Vertragsbeendigung:</strong> Der Leihgeber behält sich das Recht vor, den Vertrag bei Verstößen gegen diese Bedingungen fristlos zu kündigen und den Gegenstand zurückzufordern.
+                </li>
+                <li>
+                    <strong>Datenschutz:</strong> Die im Rahmen dieses Vertrags erhobenen personenbezogenen Daten werden ausschließlich für die Verwaltung der Ausleihe verwendet und gemäß DSGVO behandelt.
+                </li>
+            </ul>
+        </div>
+
+        <!-- Additional Terms for Different User Roles -->
+        {% if loan.borrower.role == 'mitarbeiter' %}
+        <div class="terms-section">
+            <h2>Besondere Bedingungen für Mitarbeiter</h2>
+            <ul class="terms-list">
+                <li>
+                    Mitarbeiter sind verpflichtet, ausgeliehene Gegenstände ausschließlich für dienstliche Zwecke zu verwenden.
+                </li>
+                <li>
+                    Bei Beendigung des Arbeitsverhältnisses sind alle ausgeliehenen Gegenstände unverzüglich zurückzugeben.
+                </li>
+                <li>
+                    Die Nutzung erfolgt auf eigene Verantwortung. Die Einrichtung übernimmt keine Haftung für Datenverlust oder andere Schäden, die durch die Nutzung entstehen.
+                </li>
+            </ul>
+        </div>
+        {% elif loan.borrower.role == 'kunde' %}
+        <div class="terms-section">
+            <h2>Besondere Bedingungen für Teilnehmer/Kunden</h2>
+            <ul class="terms-list">
+                <li>
+                    Die Ausleihe erfolgt im Rahmen der Teilnahme am Programm/Kurs und ist auf diesen Zeitraum begrenzt.
+                </li>
+                <li>
+                    Bei Abbruch oder Beendigung der Teilnahme sind alle ausgeliehenen Gegenstände unverzüglich zurückzugeben.
+                </li>
+                <li>
+                    Für Schäden, die durch unsachgemäße Behandlung entstehen, wird eine Kostenbeteiligung in Höhe der Reparatur- oder Wiederbeschaffungskosten erhoben.
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Signatures -->
+        <div class="signature-section">
+            <div style="margin-bottom: 20px;">
+                <p><strong>Durch die Unterschrift bestätigen beide Parteien die Kenntnisnahme und Akzeptanz der oben genannten Bedingungen.</strong></p>
+            </div>
+
+            <div class="signature-row">
+                <div class="signature-box">
+                    <div class="signature-label">Ort, Datum</div>
+                    <div class="signature-line">
+                        <div class="signature-info">______________________, {{ loan.loan_date.strftime('%d.%m.%Y') }}</div>
+                    </div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-label">Ort, Datum</div>
+                    <div class="signature-line">
+                        <div class="signature-info">______________________, {{ loan.loan_date.strftime('%d.%m.%Y') }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="signature-row" style="margin-top: 20px;">
+                <div class="signature-box">
+                    <div class="signature-label">Unterschrift Verleiher</div>
+                    <div class="signature-line">
+                        <div class="signature-info">_________________________________</div>
+                        <div style="font-size: 9pt; color: #666; margin-top: 5px;">Inventarverwaltung</div>
+                    </div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-label">Unterschrift Entleiher</div>
+                    <div class="signature-line">
+                        <div class="signature-info">_________________________________</div>
+                        <div style="font-size: 9pt; color: #666; margin-top: 5px;">{{ loan.borrower.username }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Dieser Vertrag wurde am {{ today.strftime('%d.%m.%Y') }} erstellt.</p>
+            <p style="margin-top: 10px;">Inventarverwaltung | Version {{ app_version if app_version else '2.3.0' }}</p>
+        </div>
+    </div>
+</body>
+</html>

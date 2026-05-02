@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% block title %}Bluetooth Scanner{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="bi bi-bluetooth"></i> Bluetooth Scanner</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Bluetooth-Gerät verbinden</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Hinweis:</strong> Diese Funktion nutzt die Web Bluetooth API und funktioniert nur mit:
+                        <ul class="mb-0 mt-2">
+                            <li>Chrome/Edge (Desktop & Android)</li>
+                            <li>Opera</li>
+                        </ul>
+                        <small class="text-muted">Bluetooth muss auf Ihrem Gerät aktiviert sein.</small>
+                    </div>
+
+                    <div id="bluetooth-status" class="mb-3">
+                        <span class="badge bg-secondary" id="connection-status">Nicht verbunden</span>
+                    </div>
+
+                    <button id="connectBtn" class="btn btn-primary me-2" onclick="connectBluetoothScanner()">
+                        <i class="bi bi-bluetooth"></i> Scanner verbinden
+                    </button>
+
+                    <button id="disconnectBtn" class="btn btn-danger" onclick="disconnectBluetoothScanner()" disabled>
+                        <i class="bi bi-x-circle"></i> Trennen
+                    </button>
+
+                    <hr>
+
+                    <div id="scan-area" style="display:none;">
+                        <h6>Gescannte Daten:</h6>
+                        <div id="scan-log" class="border rounded p-3" style="max-height: 300px; overflow-y: auto; font-family: monospace; background-color: #f8f9fa;">
+                            <div class="text-muted">Warte auf Scans...</div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label">Letzter Scan:</label>
+                            <input type="text" id="last-scan" class="form-control" readonly>
+                        </div>
+
+                        <div class="mt-3">
+                            <button class="btn btn-success" onclick="searchScannedItem()">
+                                <i class="bi bi-search"></i> Gegenstand suchen
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearScanLog()">
+                                <i class="bi bi-trash"></i> Log leeren
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Unterstützte Geräte</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>Bluetooth Barcode Scanner</li>
+                        <li>Bluetooth RFID Reader</li>
+                        <li>Bluetooth QR-Code Scanner</li>
+                        <li>HID-kompatible Bluetooth-Geräte</li>
+                    </ul>
+
+                    <hr>
+
+                    <h6>Konfiguration:</h6>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="auto-search" checked>
+                        <label class="form-check-label" for="auto-search">
+                            Automatisch suchen
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="sound-enabled" checked>
+                        <label class="form-check-label" for="sound-enabled">
+                            Ton bei Scan
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Statistik</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <span>Scans heute:</span>
+                        <strong id="scan-count">0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span>Letzter Scan:</span>
+                        <strong id="last-scan-time">-</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let bluetoothDevice = null;
+let bluetoothCharacteristic = null;
+let scanCount = 0;
+
+// Check if Web Bluetooth API is supported
+if (!navigator.bluetooth) {
+    document.getElementById('bluetooth-status').innerHTML =
+        '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Web Bluetooth API wird von diesem Browser nicht unterstützt. Bitte verwenden Sie Chrome, Edge oder Opera.</div>';
+    document.getElementById('connectBtn').disabled = true;
+}
+
+async function connectBluetoothScanner() {
+    try {
+        const connectBtn = document.getElementById('connectBtn');
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verbinde...';
+
+        // Request Bluetooth device
+        bluetoothDevice = await navigator.bluetooth.requestDevice({
+            filters: [
+                { services: ['battery_service'] },
+                { services: ['human_interface_device'] }
+            ],
+            optionalServices: ['battery_service', 'device_information']
+        });
+
+        document.getElementById('connection-status').className = 'badge bg-warning';
+        document.getElementById('connection-status').textContent = 'Verbinde...';
+
+        // Connect to GATT server
+        const server = await bluetoothDevice.gatt.connect();
+
+        document.getElementById('connection-status').className = 'badge bg-success';
+        document.getElementById('connection-status').textContent = 'Verbunden: ' + bluetoothDevice.name;
+
+        connectBtn.innerHTML = '<i class="bi bi-bluetooth"></i> Scanner verbinden';
+        document.getElementById('disconnectBtn').disabled = false;
+        document.getElementById('scan-area').style.display = 'block';
+
+        // Setup disconnection handler
+        bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+        // Listen for scans (simulated for HID devices)
+        document.addEventListener('keypress', handleScan);
+
+    } catch (error) {
+        console.error('Bluetooth connection error:', error);
+        document.getElementById('connection-status').className = 'badge bg-danger';
+        document.getElementById('connection-status').textContent = 'Verbindung fehlgeschlagen';
+
+        const connectBtn = document.getElementById('connectBtn');
+        connectBtn.disabled = false;
+        connectBtn.innerHTML = '<i class="bi bi-bluetooth"></i> Scanner verbinden';
+    }
+}
+
+function disconnectBluetoothScanner() {
+    if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+        bluetoothDevice.gatt.disconnect();
+    }
+    onDisconnected();
+}
+
+function onDisconnected() {
+    document.getElementById('connection-status').className = 'badge bg-secondary';
+    document.getElementById('connection-status').textContent = 'Nicht verbunden';
+    document.getElementById('connectBtn').disabled = false;
+    document.getElementById('disconnectBtn').disabled = true;
+    document.getElementById('scan-area').style.display = 'none';
+    document.removeEventListener('keypress', handleScan);
+    bluetoothDevice = null;
+}
+
+let scanBuffer = '';
+let scanTimeout = null;
+
+function handleScan(event) {
+    // HID scanners send data as keyboard input
+    if (event.key === 'Enter') {
+        if (scanBuffer.length > 0) {
+            processScan(scanBuffer);
+            scanBuffer = '';
+        }
+    } else {
+        scanBuffer += event.key;
+
+        // Reset timeout
+        if (scanTimeout) clearTimeout(scanTimeout);
+        scanTimeout = setTimeout(() => {
+            if (scanBuffer.length > 0) {
+                processScan(scanBuffer);
+                scanBuffer = '';
+            }
+        }, 100);
+    }
+}
+
+function processScan(data) {
+    scanCount++;
+    const now = new Date();
+
+    // Update UI
+    document.getElementById('last-scan').value = data;
+    document.getElementById('scan-count').textContent = scanCount;
+    document.getElementById('last-scan-time').textContent = now.toLocaleTimeString('de-DE');
+
+    // Add to log
+    const scanLog = document.getElementById('scan-log');
+    const entry = document.createElement('div');
+    entry.className = 'scan-entry mb-2 p-2 border-bottom';
+    entry.innerHTML = `
+        <div class="d-flex justify-content-between">
+            <code>${data}</code>
+            <small class="text-muted">${now.toLocaleTimeString('de-DE')}</small>
+        </div>
+    `;
+
+    if (scanLog.children[0].classList.contains('text-muted')) {
+        scanLog.innerHTML = '';
+    }
+
+    scanLog.insertBefore(entry, scanLog.firstChild);
+
+    // Play sound
+    if (document.getElementById('sound-enabled').checked) {
+        playBeep();
+    }
+
+    // Auto-search if enabled
+    if (document.getElementById('auto-search').checked) {
+        setTimeout(() => searchScannedItem(), 500);
+    }
+}
+
+function playBeep() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+}
+
+function searchScannedItem() {
+    const code = document.getElementById('last-scan').value;
+    if (!code) {
+        alert('Kein Scan-Code vorhanden');
+        return;
+    }
+
+    // Search for item by barcode, serial, or RFID
+    window.location.href = `/items?q=${encodeURIComponent(code)}`;
+}
+
+function clearScanLog() {
+    document.getElementById('scan-log').innerHTML = '<div class="text-muted">Warte auf Scans...</div>';
+    scanCount = 0;
+    document.getElementById('scan-count').textContent = '0';
+}
+</script>
+{% endblock %}

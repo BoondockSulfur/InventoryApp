@@ -1,0 +1,73 @@
+# Flask Core & Extensions (REQUIRED)
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-Login==0.6.3
+Flask-Mail==0.9.1
+Flask-WTF==1.1.1
+WTForms==3.0.1
+email-validator==2.0.0
+python-dotenv==1.0.0
+Werkzeug==2.3.7
+
+# Database Driver (REQUIRED)
+psycopg2-binary==2.9.9
+
+# Security (REQUIRED)
+Flask-Limiter==3.5.0
+
+# Background Tasks (REQUIRED)
+APScheduler==3.10.4
+
+# Basic Features (REQUIRED)
+requests==2.31.0
+Pillow==10.0.1
+
+# QR Codes & Barcodes (REQUIRED for label generation)
+qrcode==7.4.2
+python-barcode==0.15.1
+
+# Excel Export (REQUIRED for export feature)
+openpyxl==3.1.2
+
+# Optional but recommended
+icalendar==5.0.11
+pytz==2023.3
+pyotp==2.9.0
+
+# OAuth & SAML Authentication (optional)
+authlib==1.2.1
+python3-saml==1.15.0
+
+# Production Server (optional)
+gunicorn==21.2.0
+
+# Multi-Language Support (i18n)
+Flask-Babel==4.0.0
+
+# WebSocket Support
+Flask-SocketIO==5.3.5
+python-socketio==5.10.0
+redis==5.0.1
+
+# GraphQL API (compatible versions to avoid graphql-core conflict)
+graphene==2.1.9
+Flask-GraphQL==2.0.1
+graphene-sqlalchemy==2.3.0
+
+# Advanced Charts & Analytics
+plotly==5.18.0
+pandas==2.1.4
+
+# Elasticsearch Integration
+elasticsearch==8.11.0
+
+# Machine Learning for AI Features
+scikit-learn==1.3.2
+numpy==1.26.2
+joblib==1.3.2
+
+# JWT for Mobile API
+PyJWT==2.8.0
+
+# PDF Generation (required for contract generation)
+WeasyPrint==60.1

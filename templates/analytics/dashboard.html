@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Analytics{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-graph-up"></i> Analytics Dashboard</h1>
+        <a href="{{ url_for('analytics_export') }}" class="btn btn-outline-primary">
+            <i class="bi bi-download"></i> Exportieren
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Gesamt-Items</h5>
+                    <h2>{{ total_items | default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>Verfügbar</h5>
+                    <h2>{{ (total_items - borrowed_items) | default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5>Verliehen</h5>
+                    <h2>{{ borrowed_items | default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5>Defekt</h5>
+                    <h2>{{ defective_items | default(0) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Ausleihen pro Monat</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="loansChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Top 10 meist geliehene Items</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="topItemsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Items pro Kategorie</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Ausleihen pro Nutzer</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="usersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Monatliche Ausleihen Chart
+const ctx1 = document.getElementById('loansChart');
+const monthlyLoansData = {{ monthly_loans | tojson | safe }};
+const monthLabels = monthlyLoansData.map(item => item[0] || 'N/A');
+const monthCounts = monthlyLoansData.map(item => item[1] || 0);
+
+new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: monthLabels.length > 0 ? monthLabels : ['Keine Daten'],
+        datasets: [{
+            label: 'Ausleihen',
+            data: monthCounts.length > 0 ? monthCounts : [0],
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    }
+});
+
+// Top Items Chart
+const ctx2 = document.getElementById('topItemsChart');
+const topItemsData = {{ top_items | tojson | safe }};
+const topItemLabels = topItemsData.map(item => item[0] || 'N/A');
+const topItemCounts = topItemsData.map(item => item[1] || 0);
+
+new Chart(ctx2, {
+    type: 'bar',
+    data: {
+        labels: topItemLabels.length > 0 ? topItemLabels : ['Keine Daten'],
+        datasets: [{
+            label: 'Anzahl Ausleihen',
+            data: topItemCounts.length > 0 ? topItemCounts : [0],
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true
+    }
+});
+
+// Kategorie Stats Chart
+const ctx3 = document.getElementById('categoriesChart');
+const categoryData = {{ category_stats | tojson | safe }};
+const categoryLabels = categoryData.map(item => item[0] || 'N/A');
+const categoryCounts = categoryData.map(item => item[1] || 0);
+
+new Chart(ctx3, {
+    type: 'pie',
+    data: {
+        labels: categoryLabels.length > 0 ? categoryLabels : ['Keine Daten'],
+        datasets: [{
+            data: categoryCounts.length > 0 ? categoryCounts : [1],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 206, 86, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(153, 102, 255, 0.5)',
+                'rgba(255, 159, 64, 0.5)'
+            ]
+        }]
+    }
+});
+
+// User Chart - placeholder da wir keine User-Daten haben
+const ctx4 = document.getElementById('usersChart');
+new Chart(ctx4, {
+    type: 'bar',
+    data: {
+        labels: ['Keine Daten'],
+        datasets: [{
+            label: 'Ausleihen',
+            data: [0],
+            backgroundColor: 'rgba(153, 102, 255, 0.5)'
+        }]
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h1 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Gegenstand bearbeiten</h1>
+      <p class="text-muted">{{ item.name }} ({{ item.serial }})</p>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+
+            <!-- Name -->
+            <div class="mb-3">
+              {{ form.name.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                {{ form.name(class="form-control", placeholder="z.B. Dell Latitude 5520") }}
+              </div>
+              {% if form.name.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.name.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Seriennummer -->
+            <div class="mb-3">
+              {{ form.serial.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                {{ form.serial(class="form-control", id="serial", placeholder="Seriennummer") }}
+              </div>
+              {% if form.serial.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.serial.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Beschreibung -->
+            <div class="mb-3">
+              {{ form.description.label(class="form-label") }}
+              {{ form.description(class="form-control", rows="3", placeholder="Detaillierte Beschreibung des Gegenstands") }}
+              {% if form.description.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.description.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Kategorie -->
+            <div class="mb-3">
+              {{ form.category_id.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-folder"></i></span>
+                {{ form.category_id(class="form-select") }}
+                <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-primary" title="Kategorien verwalten">
+                  <i class="bi bi-gear"></i>
+                </a>
+              </div>
+              {% if form.category_id.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.category_id.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <small class="form-text text-muted">
+                Kategorie nicht vorhanden? <a href="{{ url_for('admin.categories') }}">Neue Kategorie erstellen</a>
+              </small>
+            </div>
+
+            <!-- Standort -->
+            <div class="mb-3">
+              {{ form.location_id.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                {{ form.location_id(class="form-select") }}
+                <a href="{{ url_for('admin.locations') }}" class="btn btn-outline-primary" title="Standorte verwalten">
+                  <i class="bi bi-gear"></i>
+                </a>
+              </div>
+              {% if form.location_id.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.location_id.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <small class="form-text text-muted">
+                Standort nicht vorhanden? <a href="{{ url_for('admin.locations') }}">Neuen Standort erstellen</a>
+              </small>
+            </div>
+
+            <!-- Übergeordneter Gegenstand -->
+            <div class="mb-3">
+              {{ form.parent_item_id.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+                {{ form.parent_item_id(class="form-select") }}
+              </div>
+              {% if form.parent_item_id.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.parent_item_id.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <small class="form-text text-muted">
+                Optional: Diesem Gegenstand einen übergeordneten Gegenstand zuweisen (z.B. Laptop gehört zu Workstation)
+              </small>
+            </div>
+
+            <!-- Notiz -->
+            <div class="mb-3">
+              {{ form.note.label(class="form-label") }}
+              {{ form.note(class="form-control", rows="3", placeholder="Zusätzliche Notizen oder Bemerkungen") }}
+              {% if form.note.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for err in form.note.errors %}{{ err }}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-2">
+              {{ form.submit(class="btn btn-primary btn-lg") }}
+              <a href="{{ url_for('item_detail', item_id=item.id) }}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-x-circle me-1"></i>Abbrechen
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 bg-light mb-3">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-info-circle me-2"></i>Gegenstandsinfo</h5>
+          <hr>
+          <p class="small mb-2"><strong>ID:</strong> #{{ item.id }}</p>
+          <p class="small mb-2"><strong>Seriennummer:</strong> {{ item.serial }}</p>
+          {% if item.is_borrowed %}
+            <p class="small mb-0">
+              <span class="badge bg-warning text-dark">
+                <i class="bi bi-exclamation-triangle me-1"></i>Aktuell verliehen
+              </span>
+            </p>
+          {% endif %}
+          {% if item.defective %}
+            <p class="small mb-0">
+              <span class="badge bg-danger">
+                <i class="bi bi-x-circle me-1"></i>Defekt
+              </span>
+            </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-diagram-3 me-2"></i>Hierarchie</h5>
+          <hr>
+          {% if item.parent_item %}
+            <p class="small mb-2">
+              <strong>Gehört zu:</strong><br>
+              <a href="{{ url_for('item_detail', item_id=item.parent_item.id) }}">
+                {{ item.parent_item.name }} ({{ item.parent_item.serial }})
+              </a>
+            </p>
+          {% endif %}
+          {% if item.child_items %}
+            <p class="small mb-0">
+              <strong>Enthält {{ item.child_items|length }} Untergegenstand(e):</strong><br>
+              {% for child in item.child_items %}
+                <a href="{{ url_for('item_detail', item_id=child.id) }}">{{ child.name }}</a>{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </p>
+          {% endif %}
+          {% if not item.parent_item and not item.child_items %}
+            <p class="small text-muted mb-0">Keine hierarchischen Beziehungen</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

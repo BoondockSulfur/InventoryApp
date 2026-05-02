@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+{% block title %}Massen-Import - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">
+        <i class="bi bi-upload"></i> Professioneller Massen-Import
+    </h1>
+
+    <!-- Import Steps -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-pills" id="importSteps">
+                <li class="nav-item">
+                    <a class="nav-link active" id="step1-tab" href="#" onclick="showStep(1)">
+                        <i class="bi bi-1-circle"></i> Datei hochladen
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" id="step2-tab" href="#" onclick="showStep(2)">
+                        <i class="bi bi-2-circle"></i> Spalten zuordnen
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" id="step3-tab" href="#" onclick="showStep(3)">
+                        <i class="bi bi-3-circle"></i> Vorschau & Import
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Step 1: File Upload -->
+    <div id="step1" class="import-step">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Schritt 1: Datei auswählen</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="fileInput" class="form-label">CSV oder Excel Datei</label>
+                            <input type="file" class="form-control form-control-lg" id="fileInput" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(event)">
+                            <small class="form-text text-muted">
+                                Unterstützte Formate: CSV (.csv), Excel (.xlsx, .xls) | Max. 10 MB
+                            </small>
+                        </div>
+
+                        <div id="fileInfo" class="alert alert-info" style="display:none;">
+                            <h6><i class="bi bi-file-earmark-text"></i> Datei-Information</h6>
+                            <div id="fileDetails"></div>
+                        </div>
+
+                        <button id="nextToMapping" class="btn btn-primary" disabled onclick="proceedToMapping()">
+                            Weiter zur Spalten-Zuordnung <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-download"></i> Vorlagen herunterladen</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="small">Laden Sie eine Vorlage herunter, um schnell zu starten:</p>
+                        <a href="/api/bulk-import/template/csv" class="btn btn-outline-success btn-sm mb-2 w-100">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> CSV-Vorlage
+                        </a>
+                        <a href="/api/bulk-import/template/xlsx" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-file-earmark-excel"></i> Excel-Vorlage
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Unterstützte Felder</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr><td><code>name</code></td><td><span class="badge bg-danger">Pflicht</span></td></tr>
+                            <tr><td><code>serial</code></td><td><span class="badge bg-danger">Pflicht</span></td></tr>
+                            <tr><td><code>category</code></td><td><span class="badge bg-secondary">Optional</span></td></tr>
+                            <tr><td><code>location</code></td><td><span class="badge bg-secondary">Optional</span></td></tr>
+                            <tr><td><code>note</code></td><td><span class="badge bg-secondary">Optional</span></td></tr>
+                            <tr><td><code>barcode</code></td><td><span class="badge bg-secondary">Optional</span></td></tr>
+                            <tr><td><code>purchase_price</code></td><td><span class="badge bg-secondary">Optional</span></td></tr>
+                            <tr><td><code>purchase_date</code></td><td><span class="badge bg-secondary">Optional</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Column Mapping -->
+    <div id="step2" class="import-step" style="display:none;">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Schritt 2: Spalten zuordnen</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Ordnen Sie die Spalten aus Ihrer Datei den Datenbankfeldern zu:</p>
+
+                <div id="columnMapping" class="row"></div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-secondary" onclick="showStep(1)">
+                        <i class="bi bi-arrow-left"></i> Zurück
+                    </button>
+                    <button class="btn btn-primary" onclick="proceedToPreview()">
+                        Weiter zur Vorschau <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Preview & Import -->
+    <div id="step3" class="import-step" style="display:none;">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Schritt 3: Vorschau & Import</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Vorschau:</strong> Es werden die ersten 10 Zeilen angezeigt.
+                    <span id="totalRows"></span>
+                </div>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover" id="previewTable">
+                        <thead class="table-light sticky-top"></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div id="importProgress" style="display:none;" class="my-3">
+                    <label class="form-label">Import-Fortschritt:</label>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="progressBar"
+                             role="progressbar" style="width: 0%">0%</div>
+                    </div>
+                    <div id="importStatus" class="mt-2"></div>
+                </div>
+
+                <div id="importResults" style="display:none;" class="alert alert-success">
+                    <h5><i class="bi bi-check-circle"></i> Import abgeschlossen!</h5>
+                    <div id="resultsDetails"></div>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-secondary" onclick="showStep(2)" id="backBtn">
+                        <i class="bi bi-arrow-left"></i> Zurück
+                    </button>
+                    <div>
+                        <button class="btn btn-success btn-lg" onclick="startImport()" id="importBtn">
+                            <i class="bi bi-upload"></i> Import starten
+                        </button>
+                        <a href="{{ url_for('items') }}" class="btn btn-primary" id="finishBtn" style="display:none;">
+                            Zur Übersicht <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+let uploadedFile = null;
+let parsedData = null;
+let columnMapping = {};
+
+const dbFields = [
+    {name: 'name', label: 'Name', required: true},
+    {name: 'serial', label: 'Seriennummer', required: true},
+    {name: 'category', label: 'Kategorie', required: false},
+    {name: 'location', label: 'Standort', required: false},
+    {name: 'note', label: 'Notizen', required: false},
+    {name: 'barcode', label: 'Barcode', required: false},
+    {name: 'purchase_price', label: 'Kaufpreis', required: false},
+    {name: 'purchase_date', label: 'Kaufdatum', required: false}
+];
+
+function showStep(step) {
+    document.querySelectorAll('.import-step').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('#importSteps .nav-link').forEach(el => el.classList.remove('active'));
+
+    document.getElementById(`step${step}`).style.display = 'block';
+    document.getElementById(`step${step}-tab`).classList.add('active');
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    uploadedFile = file;
+    const fileInfo = document.getElementById('fileInfo');
+    const fileDetails = document.getElementById('fileDetails');
+
+    fileDetails.innerHTML = `
+        <strong>Dateiname:</strong> ${file.name}<br>
+        <strong>Größe:</strong> ${(file.size / 1024).toFixed(2)} KB<br>
+        <strong>Typ:</strong> ${file.type || 'Unbekannt'}
+    `;
+    fileInfo.style.display = 'block';
+    document.getElementById('nextToMapping').disabled = false;
+}
+
+function proceedToMapping() {
+    if (!uploadedFile) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const data = e.target.result;
+
+        if (uploadedFile.name.endsWith('.csv')) {
+            parseCSV(data);
+        } else {
+            parseExcel(data);
+        }
+    };
+
+    if (uploadedFile.name.endsWith('.csv')) {
+        reader.readAsText(uploadedFile);
+    } else {
+        reader.readAsBinaryString(uploadedFile);
+    }
+}
+
+function parseCSV(data) {
+    Papa.parse(data, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+            parsedData = results.data;
+            const headers = results.meta.fields;
+            setupColumnMapping(headers);
+        }
+    });
+}
+
+function parseExcel(data) {
+    const workbook = XLSX.read(data, {type: 'binary'});
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+    parsedData = jsonData;
+    const headers = Object.keys(jsonData[0] || {});
+    setupColumnMapping(headers);
+}
+
+function setupColumnMapping(fileHeaders) {
+    const mappingDiv = document.getElementById('columnMapping');
+    mappingDiv.innerHTML = '';
+
+    dbFields.forEach(field => {
+        const matchedHeader = fileHeaders.find(h =>
+            h.toLowerCase() === field.name.toLowerCase()
+        );
+
+        const col = document.createElement('div');
+        col.className = 'col-md-6 mb-3';
+        col.innerHTML = `
+            <label class="form-label">
+                ${field.label}
+                ${field.required ? '<span class="badge bg-danger ms-2">Pflicht</span>' : ''}
+            </label>
+            <select class="form-select" data-field="${field.name}">
+                <option value="">- Nicht zuordnen -</option>
+                ${fileHeaders.map(h => `
+                    <option value="${h}" ${h === matchedHeader ? 'selected' : ''}>${h}</option>
+                `).join('')}
+            </select>
+        `;
+        mappingDiv.appendChild(col);
+    });
+
+    document.getElementById('step2-tab').classList.remove('disabled');
+    showStep(2);
+}
+
+function proceedToPreview() {
+    // Collect mapping
+    columnMapping = {};
+    document.querySelectorAll('#columnMapping select').forEach(select => {
+        const field = select.dataset.field;
+        const header = select.value;
+        if (header) columnMapping[field] = header;
+    });
+
+    // Validate required fields
+    const missingFields = dbFields
+        .filter(f => f.required && !columnMapping[f.name])
+        .map(f => f.label);
+
+    if (missingFields.length > 0) {
+        alert(`Bitte ordnen Sie folgende Pflichtfelder zu: ${missingFields.join(', ')}`);
+        return;
+    }
+
+    showPreview();
+    document.getElementById('step3-tab').classList.remove('disabled');
+    showStep(3);
+}
+
+function showPreview() {
+    const table = document.getElementById('previewTable');
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+
+    // Build header
+    const headerRow = document.createElement('tr');
+    dbFields.forEach(field => {
+        if (columnMapping[field.name]) {
+            const th = document.createElement('th');
+            th.textContent = field.label;
+            headerRow.appendChild(th);
+        }
+    });
+    thead.innerHTML = '';
+    thead.appendChild(headerRow);
+
+    // Build preview rows (first 10)
+    tbody.innerHTML = '';
+    const previewData = parsedData.slice(0, 10);
+
+    previewData.forEach(row => {
+        const tr = document.createElement('tr');
+        dbFields.forEach(field => {
+            if (columnMapping[field.name]) {
+                const td = document.createElement('td');
+                td.textContent = row[columnMapping[field.name]] || '-';
+                tr.appendChild(td);
+            }
+        });
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('totalRows').textContent =
+        `Insgesamt ${parsedData.length} Zeilen zum Import bereit.`;
+}
+
+function startImport() {
+    const importBtn = document.getElementById('importBtn');
+    const backBtn = document.getElementById('backBtn');
+    const progressDiv = document.getElementById('importProgress');
+    const progressBar = document.getElementById('progressBar');
+    const statusDiv = document.getElementById('importStatus');
+
+    importBtn.disabled = true;
+    backBtn.disabled = true;
+    progressDiv.style.display = 'block';
+
+    // Map data
+    const mappedData = parsedData.map(row => {
+        const item = {};
+        dbFields.forEach(field => {
+            if (columnMapping[field.name]) {
+                item[field.name] = row[columnMapping[field.name]];
+            }
+        });
+        return item;
+    });
+
+    // Send to server
+    fetch('/api/bulk-import/items', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({items: mappedData})
+    })
+    .then(response => response.json())
+    .then(data => {
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+
+        const resultsDiv = document.getElementById('importResults');
+        const resultsDetails = document.getElementById('resultsDetails');
+
+        resultsDetails.innerHTML = `
+            <p><strong>Erfolgreich importiert:</strong> ${data.success_count || 0}</p>
+            <p><strong>Fehlgeschlagen:</strong> ${data.error_count || 0}</p>
+            ${data.errors && data.errors.length > 0 ? `
+                <details>
+                    <summary>Fehlerdetails anzeigen</summary>
+                    <ul class="mt-2">
+                        ${data.errors.slice(0, 10).map(err => `<li>${err}</li>`).join('')}
+                    </ul>
+                </details>
+            ` : ''}
+        `;
+
+        resultsDiv.style.display = 'block';
+        document.getElementById('finishBtn').style.display = 'inline-block';
+        importBtn.style.display = 'none';
+    })
+    .catch(error => {
+        alert('Import fehlgeschlagen: ' + error.message);
+        importBtn.disabled = false;
+        backBtn.disabled = false;
+    });
+}
+</script>
+{% endblock %}

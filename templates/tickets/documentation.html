@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket-System Dokumentation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Inhaltsverzeichnis</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#overview" class="list-group-item list-group-item-action">Übersicht</a>
+                    <a href="#categories" class="list-group-item list-group-item-action">Kategorien</a>
+                    <a href="#priorities" class="list-group-item list-group-item-action">Prioritäten</a>
+                    <a href="#statuses" class="list-group-item list-group-item-action">Status & Workflows</a>
+                    <a href="#custom-fields" class="list-group-item list-group-item-action">Custom Fields</a>
+                    <a href="#templates" class="list-group-item list-group-item-action">Vorlagen</a>
+                    <a href="#sla" class="list-group-item list-group-item-action">SLA-Regeln</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="bi bi-book"></i> Ticket-System Handbuch</h1>
+                <a href="{{ url_for('tickets.settings') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück
+                </a>
+            </div>
+
+            <section id="overview" class="mb-5">
+                <h2>Übersicht</h2>
+                <p class="lead">Das Enhanced Ticket System bietet flexible Lösungen für Ihr Ticket-Management.</p>
+                <div class="alert alert-info">
+                    <strong>Hauptfunktionen:</strong> Kategorien, Prioritäten, Status-Workflows, Custom Fields, Vorlagen, SLA-Regeln
+                </div>
+            </section>
+
+            <section id="categories" class="mb-5">
+                <h2>Kategorien</h2>
+                <p>Organisieren Sie Tickets nach Themengebieten.</p>
+                <h4>Einstellungen:</h4>
+                <ul>
+                    <li><strong>Name:</strong> Eindeutiger Kategoriename</li>
+                    <li><strong>Beschreibung:</strong> Optionale Beschreibung</li>
+                    <li><strong>Farbe:</strong> Hex-Farbcode (#RRGGBB)</li>
+                    <li><strong>Icon:</strong> Bootstrap Icon (z.B. 'bug', 'gear')</li>
+                    <li><strong>SLA:</strong> Standard-Bearbeitungszeit in Stunden</li>
+                </ul>
+            </section>
+
+            <section id="priorities" class="mb-5">
+                <h2>Prioritäten</h2>
+                <p>Definieren Sie die Dringlichkeit von Tickets.</p>
+                <h4>Best Practices:</h4>
+                <ul>
+                    <li>Verwenden Sie 3-5 Prioritätsstufen</li>
+                    <li>Setzen Sie realistische Zeiten</li>
+                    <li>Level 1-5 (5 = höchste Priorität)</li>
+                </ul>
+            </section>
+
+            <section id="statuses" class="mb-5">
+                <h2>Status & Workflows</h2>
+                <p>Steuern Sie den Lebenszyklus Ihrer Tickets.</p>
+                <h4>Standard-Status:</h4>
+                <ul>
+                    <li><strong>new:</strong> Neu erstellt</li>
+                    <li><strong>open:</strong> In Bearbeitung</li>
+                    <li><strong>pending:</strong> Wartet auf Rückmeldung</li>
+                    <li><strong>resolved:</strong> Gelöst</li>
+                    <li><strong>closed:</strong> Geschlossen</li>
+                </ul>
+            </section>
+
+            <section id="custom-fields" class="mb-5">
+                <h2>Custom Fields</h2>
+                <p>Erstellen Sie benutzerdefinierte Felder.</p>
+                <h4>Verfügbare Feldtypen:</h4>
+                <ul>
+                    <li><strong>text:</strong> Einzeiliger Text</li>
+                    <li><strong>number:</strong> Numerische Werte</li>
+                    <li><strong>date:</strong> Datumsauswahl</li>
+                    <li><strong>select:</strong> Dropdown-Auswahl</li>
+                    <li><strong>checkbox:</strong> Ja/Nein</li>
+                </ul>
+            </section>
+
+            <section id="templates" class="mb-5">
+                <h2>Vorlagen</h2>
+                <p>Beschleunigen Sie die Ticket-Erstellung.</p>
+                <h4>Platzhalter:</h4>
+                <ul>
+                    <li><code>{user}</code> - Name des Erstellers</li>
+                    <li><code>{date}</code> - Aktuelles Datum</li>
+                    <li><code>{time}</code> - Aktuelle Uhrzeit</li>
+                </ul>
+            </section>
+
+            <section id="sla" class="mb-5">
+                <h2>SLA-Regeln</h2>
+                <p>Service Level Agreements definieren.</p>
+                <h4>Regel-Priorität:</h4>
+                <ol>
+                    <li>Spezifische Kategorie + Priorität</li>
+                    <li>Nur Kategorie</li>
+                    <li>Nur Priorität</li>
+                    <li>Standard-SLA</li>
+                </ol>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

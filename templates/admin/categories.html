@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h1 class="mb-0"><i class="bi bi-folder me-2"></i>Kategorien verwalten</h1>
+      <p class="text-muted">Kategorien für Gegenstände erstellen und bearbeiten</p>
+    </div>
+    <div class="col-md-6 text-end">
+      <a href="{{ url_for('admin.add_category') }}" class="btn btn-primary btn-lg">
+        <i class="bi bi-plus-circle me-2"></i>Neue Kategorie
+      </a>
+    </div>
+  </div>
+
+  {% if categories %}
+    <div class="row g-3">
+      {% for cat in categories %}
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100 shadow-sm hover-shadow">
+            <div class="card-body">
+              <div class="d-flex align-items-start mb-3">
+                <div class="flex-shrink-0 me-3">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background-color: {{ cat.color }}20; color: {{ cat.color }};">
+                    <i class="bi bi-{{ cat.icon }}" style="font-size: 24px;"></i>
+                  </div>
+                </div>
+                <div class="flex-grow-1">
+                  <h5 class="card-title mb-1">{{ cat.name }}</h5>
+                  <p class="card-text text-muted small mb-0">
+                    {{ cat.items|length }} Gegenstand(e)
+                  </p>
+                </div>
+              </div>
+              {% if cat.description %}
+                <p class="card-text small text-muted">{{ cat.description[:80] }}{% if cat.description|length > 80 %}...{% endif %}</p>
+              {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+              <div class="d-flex gap-2">
+                <a href="{{ url_for('admin.edit_category', category_id=cat.id) }}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                  <i class="bi bi-pencil me-1"></i>Bearbeiten
+                </a>
+                <form method="post" action="{{ url_for('admin.delete_category', category_id=cat.id) }}" class="flex-grow-1" onsubmit="return confirm('Kategorie wirklich löschen?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                    <i class="bi bi-trash me-1"></i>Löschen
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-folder" style="font-size: 80px; color: #6c757d; opacity: 0.3;"></i>
+        <h3 class="mb-3 mt-4">Keine Kategorien vorhanden</h3>
+        <p class="text-muted mb-4">Erstelle deine erste Kategorie für die Gegenstandsverwaltung</p>
+        <a href="{{ url_for('admin.add_category') }}" class="btn btn-primary btn-lg">
+          <i class="bi bi-plus-circle me-2"></i>Erste Kategorie erstellen
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+.hover-shadow {
+  transition: all 0.3s ease;
+}
+.hover-shadow:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
+{% endblock %}

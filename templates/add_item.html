@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h1 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Gegenstand hinzufügen</h1>
+      <p class="text-muted">Neuen Gegenstand zum Inventar hinzufügen</p>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+
+            <!-- Name -->
+            <div class="mb-3">
+              {{ form.name.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                {{ form.name(class="form-control", placeholder="z.B. Dell Latitude 5520") }}
+              </div>
+              {% if form.name.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.name.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Seriennummer mit Generieren-Button (Improved UI/UX) -->
+            <div class="mb-3">
+              <label for="serial" class="form-label">
+                <i class="bi bi-upc-scan me-1"></i>Seriennummer
+                <small class="text-muted">(Eindeutige Kennung)</small>
+              </label>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text bg-light">
+                  <i class="bi bi-hash"></i>
+                </span>
+                {{ form.serial(class="form-control form-control-lg", id="serial", placeholder="z.B. ABC123XYZ oder automatisch generieren", autocomplete="off") }}
+                <button
+                  type="button"
+                  id="generate-serial-btn"
+                  class="btn btn-outline-primary px-4"
+                  title="Generiert eine eindeutige Seriennummer und öffnet den Label-Designer"
+                >
+                  <i class="bi bi-stars me-2"></i>
+                  <span class="d-none d-md-inline">Automatisch </span>Generieren
+                </button>
+              </div>
+              <div class="form-text">
+                <i class="bi bi-info-circle me-1"></i>
+                Generiert eine eindeutige 8-stellige Seriennummer und öffnet den Label-Designer zum Drucken
+              </div>
+              {% if form.serial.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.serial.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Beschreibung -->
+            <div class="mb-3">
+              {{ form.description.label(class="form-label") }}
+              {{ form.description(class="form-control", rows="3", placeholder="Detaillierte Beschreibung des Gegenstands") }}
+              {% if form.description.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.description.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Kategorie -->
+            <div class="mb-3">
+              {{ form.category_id.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-folder"></i></span>
+                {{ form.category_id(class="form-select") }}
+                <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-primary" title="Kategorien verwalten">
+                  <i class="bi bi-gear"></i>
+                </a>
+              </div>
+              {% if form.category_id.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.category_id.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <small class="form-text text-muted">
+                Kategorie nicht vorhanden? <a href="{{ url_for('admin.categories') }}">Neue Kategorie erstellen</a>
+              </small>
+            </div>
+
+            <!-- Standort -->
+            <div class="mb-3">
+              {{ form.location_id.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                {{ form.location_id(class="form-select") }}
+                <a href="{{ url_for('admin.locations') }}" class="btn btn-outline-primary" title="Standorte verwalten">
+                  <i class="bi bi-gear"></i>
+                </a>
+              </div>
+              {% if form.location_id.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.location_id.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <small class="form-text text-muted">
+                Standort nicht vorhanden? <a href="{{ url_for('admin.locations') }}">Neuen Standort erstellen</a>
+              </small>
+            </div>
+
+            <!-- Übergeordneter Gegenstand -->
+            <div class="mb-3">
+              {{ form.parent_item_id.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+                {{ form.parent_item_id(class="form-select") }}
+              </div>
+              {% if form.parent_item_id.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.parent_item_id.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <small class="form-text text-muted">
+                Optional: Diesem Gegenstand einen übergeordneten Gegenstand zuweisen (z.B. Laptop gehört zu Workstation)
+              </small>
+            </div>
+
+            <!-- Notiz -->
+            <div class="mb-3">
+              {{ form.note.label(class="form-label") }}
+              {{ form.note(class="form-control", rows="3", placeholder="Zusätzliche Notizen oder Bemerkungen") }}
+              {% if form.note.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for err in form.note.errors %}{{ err }}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Budget & Preis Section -->
+            <hr class="my-4">
+            <h5 class="mb-3"><i class="bi bi-cash-stack me-2"></i>Budget & Wert</h5>
+
+            <!-- Einkaufspreis -->
+            <div class="mb-3">
+              {{ form.purchase_price.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-currency-euro"></i></span>
+                {{ form.purchase_price(class="form-control", placeholder="0.00", step="0.01", type="number") }}
+                <span class="input-group-text">€</span>
+              </div>
+              {% if form.purchase_price.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.purchase_price.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Kaufdatum -->
+            <div class="mb-3">
+              {{ form.purchase_date.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                {{ form.purchase_date(class="form-control", type="date") }}
+              </div>
+              {% if form.purchase_date.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.purchase_date.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Budget Zuordnung -->
+            <div class="mb-3">
+              {{ form.budget_id.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-wallet2"></i></span>
+                {{ form.budget_id(class="form-select") }}
+                <a href="{{ url_for('budget_overview') }}" class="btn btn-outline-primary" title="Budget verwalten">
+                  <i class="bi bi-gear"></i>
+                </a>
+              </div>
+              {% if form.budget_id.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in form.budget_id.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+              <small class="form-text text-muted">
+                Optional: Budget für diese Anschaffung auswählen
+              </small>
+            </div>
+
+            <!-- Von Budget abziehen Checkbox -->
+            <div class="mb-3">
+              <div class="form-check">
+                {{ form.deduct_from_budget(class="form-check-input") }}
+                {{ form.deduct_from_budget.label(class="form-check-label") }}
+              </div>
+              <small class="form-text text-muted">
+                Wenn aktiviert, wird der Einkaufspreis automatisch vom gewählten Budget abgezogen
+              </small>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-2">
+              {{ form.submit(class="btn btn-primary btn-lg") }}
+              <a href="{{ url_for('items') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-x-circle me-1"></i>Abbrechen
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help Card -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 bg-light">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-info-circle me-2"></i>Hilfe</h5>
+          <hr>
+          <p class="small"><strong>Bezeichnung:</strong> Der Name des Gegenstands</p>
+          <p class="small"><strong>Seriennummer:</strong> Eindeutige Kennung</p>
+          <p class="small"><strong>Kategorie:</strong> Typ des Gegenstands (z.B. Laptop, Monitor)</p>
+          <p class="small"><strong>Standort:</strong> Wo sich der Gegenstand befindet</p>
+          <p class="small"><strong>Übergeordnet:</strong> Hierarchische Zuordnung zu einem anderen Gegenstand</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Label Designer Modal -->
+<div class="modal fade" id="labelDesignerModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="bi bi-qr-code me-2"></i>Label Designer</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe id="labelDesignerFrame" src="" style="width:100%;height:70vh;border:none;"></iframe>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+        <button type="button" class="btn btn-primary" id="openLabelDesignerNewTab">In neuem Tab öffnen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='js/serial_generator.js') }}"></script>
+<script>
+window.openLabelDesigner=function(s){if(!s)return;var u="/labels/generator?serial="+encodeURIComponent(s);document.getElementById("labelDesignerFrame").src=u;new bootstrap.Modal(document.getElementById("labelDesignerModal")).show();document.getElementById("openLabelDesignerNewTab").onclick=function(){window.open(u,"_blank")}};
+</script>
+{% endblock %}

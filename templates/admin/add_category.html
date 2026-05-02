@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h1 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Neue Kategorie</h1>
+      <p class="text-muted">Kategorie für Gegenstände erstellen</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+              {{ form.name.label(class="form-label") }}
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                {{ form.name(class="form-control", placeholder="z.B. Laptop, Monitor, Zubehör") }}
+              </div>
+              {% if form.name.errors %}
+                <div class="invalid-feedback d-block">{% for error in form.name.errors %}{{ error }}{% endfor %}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              {{ form.description.label(class="form-label") }}
+              {{ form.description(class="form-control", rows="3", placeholder="Optionale Beschreibung") }}
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                {{ form.icon.label(class="form-label") }}
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-star"></i></span>
+                  {{ form.icon(class="form-control", placeholder="z.B. laptop, monitor, box") }}
+                </div>
+                <small class="text-muted">Bootstrap Icons Namen ohne "bi-"</small>
+              </div>
+              <div class="col-md-6 mb-3">
+                {{ form.color.label(class="form-label") }}
+                <div class="input-group">
+                  {{ form.color(class="form-control", type="color", value="#6c757d") }}
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              {{ form.submit(class="btn btn-primary btn-lg") }}
+              <a href="{{ url_for('admin.categories') }}" class="btn btn-outline-secondary btn-lg"><i class="bi bi-x-circle me-1"></i>Abbrechen</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

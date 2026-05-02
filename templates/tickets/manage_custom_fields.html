@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Custom Fields verwalten - InventoryApp
+{% include 'tickets/_toast_notifications.html' %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-input-cursor-text"></i> Benutzerdefinierte Felder</h2>
+                    <p class="text-muted">Custom Fields für Tickets erstellen und verwalten</p>
+                </div>
+                <a href="{{ url_for('tickets.settings') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück zu Einstellungen
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Custom Fields-Liste</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Feldtyp</th>
+                                    <th>Pflichtfeld</th>
+                                    <th>Standard-Wert</th>
+                                    <th>Hilfetext</th>
+                                    <th>Reihenfolge</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if fields %}
+                                    {% for field in fields %}
+                                    <tr data-id="{{ field.id }}">
+                                        <td><strong>{{ field.name }}</strong></td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ field.field_type }}</span>
+                                        </td>
+                                        <td>
+                                            {% if field.is_required %}
+                                                <span class="badge bg-danger">Ja</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Nein</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ field.default_value or '-' }}</td>
+                                        <td>{{ field.help_text or '-' }}</td>
+                                        <td>{{ field.order }}</td>
+                                        <td>
+                                            {% if field.is_active %}
+                                                <span class="badge bg-success">Aktiv</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inaktiv</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="editField({{ field.id }}, '{{ field.field_type }}', {{ field.options | tojson if field.options else 'null' }})">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteField({{ field.id }})">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                                            <p class="mt-2">Keine Custom Fields vorhanden</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <button class="btn btn-success" onclick="showAddFieldModal()">
+                            <i class="bi bi-plus-circle"></i> Neues Custom Field
+                        </button>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <h6><i class="bi bi-info-circle"></i> Verfügbare Feldtypen:</h6>
+                        <ul class="mb-0">
+                            <li><strong>text</strong>: Einzeiliger Text</li>
+                            <li><strong>number</strong>: Zahlen</li>
+                            <li><strong>date</strong>: Datum</li>
+                            <li><strong>select</strong>: Dropdown-Auswahl</li>
+                            <li><strong>checkbox</strong>: Ja/Nein</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Erstellen/Bearbeiten -->
+<div class="modal fade" id="fieldModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Neues Custom Field</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="fieldForm">
+                    <input type="hidden" id="fieldId">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Feld-Name *</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="field_type" class="form-label">Feldtyp *</label>
+                        <select class="form-control" id="field_type" required onchange="handleFieldTypeChange()">
+                            <option value="">Bitte wählen...</option>
+                            <option value="text">Text (Einzeilig)</option>
+                            <option value="textarea">Text (Mehrzeilig)</option>
+                            <option value="number">Zahl</option>
+                            <option value="date">Datum</option>
+                            <option value="select">Dropdown-Auswahl</option>
+                            <option value="checkbox">Checkbox (Ja/Nein)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="options_container" style="display: none;">
+                        <label for="options" class="form-label">Optionen (eine pro Zeile)</label>
+                        <textarea class="form-control" id="options" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+                        <small class="text-muted">Nur für Dropdown-Auswahl relevant</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="default_value" class="form-label">Standard-Wert</label>
+                        <input type="text" class="form-control" id="default_value">
+                    </div>
+                    <div class="mb-3">
+                        <label for="help_text" class="form-label">Hilfetext</label>
+                        <input type="text" class="form-control" id="help_text" placeholder="Optionaler Hilfetext">
+                    </div>
+                    <div class="mb-3">
+                        <label for="order" class="form-label">Reihenfolge</label>
+                        <input type="number" class="form-control" id="order" value="0" min="0">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_required">
+                        <label class="form-check-label" for="is_required">Pflichtfeld</label>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_active" checked>
+                        <label class="form-check-label" for="is_active">Aktiv</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="saveField()">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let fieldModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    fieldModal = new bootstrap.Modal(document.getElementById('fieldModal'));
+});
+
+function handleFieldTypeChange() {
+    const fieldType = document.getElementById('field_type').value;
+    const optionsContainer = document.getElementById('options_container');
+
+    if (fieldType === 'select') {
+        optionsContainer.style.display = 'block';
+    } else {
+        optionsContainer.style.display = 'none';
+    }
+}
+
+function showAddFieldModal() {
+    document.getElementById('modalTitle').textContent = 'Neues Custom Field';
+    document.getElementById('fieldForm').reset();
+    document.getElementById('fieldId').value = '';
+    document.getElementById('order').value = '0';
+    document.getElementById('is_required').checked = false;
+    document.getElementById('is_active').checked = true;
+    document.getElementById('options_container').style.display = 'none';
+    fieldModal.show();
+}
+
+async function editField(id, fieldType, options) {
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    const cells = row.cells;
+
+    document.getElementById('modalTitle').textContent = 'Custom Field bearbeiten';
+    document.getElementById('fieldId').value = id;
+    document.getElementById('name').value = cells[0].querySelector('strong').textContent;
+    document.getElementById('field_type').value = fieldType;
+    document.getElementById('is_required').checked = cells[2].textContent.includes('Ja');
+    document.getElementById('default_value').value = cells[3].textContent !== '-' ? cells[3].textContent : '';
+    document.getElementById('help_text').value = cells[4].textContent !== '-' ? cells[4].textContent : '';
+    document.getElementById('order').value = cells[5].textContent;
+    document.getElementById('is_active').checked = cells[6].textContent.includes('Aktiv');
+
+    // Handle options for select fields
+    if (fieldType === 'select' && options) {
+        document.getElementById('options_container').style.display = 'block';
+        const optionsArray = JSON.parse(options);
+        document.getElementById('options').value = optionsArray.join('\n');
+    } else {
+        document.getElementById('options_container').style.display = 'none';
+    }
+
+    fieldModal.show();
+}
+
+async function saveField() {
+    const id = document.getElementById('fieldId').value;
+    const fieldType = document.getElementById('field_type').value;
+
+    // Prepare options array if field type is select
+    let options = null;
+    if (fieldType === 'select') {
+        const optionsText = document.getElementById('options').value;
+        options = optionsText.split('\n').filter(line => line.trim() !== '');
+    }
+
+    const data = {
+        name: document.getElementById('name').value,
+        field_type: fieldType,
+        options: options,
+        is_required: document.getElementById('is_required').checked,
+        default_value: document.getElementById('default_value').value,
+        help_text: document.getElementById('help_text').value,
+        order: parseInt(document.getElementById('order').value),
+        is_active: document.getElementById('is_active').checked
+    };
+
+    const url = id ? `/tickets/api/custom-field/${id}` : '/tickets/api/custom-field';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const response = await secureFetch(url, {method: method, body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            fieldModal.hide();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showErrorToast('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        showInfoToast('Fehler beim Speichern: ' + error.message);
+    }
+}
+
+async function deleteField(id) {
+    if (!confirm('Möchten Sie dieses Custom Field wirklich löschen?')) {
+        return;
+    }
+
+    try {
+        const response = await secureFetch(`/tickets/api/custom-field/${id}`, {method: 'DELETE'});
+
+        const result = await response.json();
+
+        if (result.success) {
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showErrorToast('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        showInfoToast('Fehler beim Löschen: ' + error.message);
+    }
+}
+</script>
+
+{% include 'tickets/_toast_notifications.html' %}
+
+{% endblock %}

@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Aktive Ausleihen</h1>
+      <p class="text-muted">Übersicht über alle verliehenen Gegenstände</p>
+    </div>
+    <div class="col-md-4 text-end">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+        <i class="bi bi-speedometer2 me-1"></i>Zurück zum Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="bi bi-arrow-left-right text-primary" style="font-size: 28px;"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="text-muted mb-1">Aktive Ausleihen</h6>
+              <h2 class="mb-0">{{ loans|length }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+              <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 28px;"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="text-muted mb-1">Überfällig</h6>
+              <h2 class="mb-0">{{ loans|selectattr('due_date', 'lt', today)|list|length }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+              <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                <i class="bi bi-clock-history text-warning" style="font-size: 28px;"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="text-muted mb-1">Bald fällig</h6>
+              {% set due_soon = namespace(count=0) %}
+              {% for loan in loans %}
+                {% set days_until_due = (loan.due_date - today).days %}
+                {% if days_until_due >= 0 and days_until_due <= 7 %}
+                  {% set due_soon.count = due_soon.count + 1 %}
+                {% endif %}
+              {% endfor %}
+              <h2 class="mb-0">{{ due_soon.count }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 me-3">
+              <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                <i class="bi bi-check-circle text-success" style="font-size: 28px;"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="text-muted mb-1">Pünktlich</h6>
+              {% set on_time = namespace(count=0) %}
+              {% for loan in loans %}
+                {% set days_until_due = (loan.due_date - today).days %}
+                {% if days_until_due > 7 %}
+                  {% set on_time.count = on_time.count + 1 %}
+                {% endif %}
+              {% endfor %}
+              <h2 class="mb-0">{{ on_time.count }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if loans %}
+    <!-- Active Loans Table -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Alle aktiven Ausleihen</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="d-none d-sm-table-cell"><i class="bi bi-hash me-1"></i>ID</th>
+                <th><i class="bi bi-box me-1"></i>Gegenstand</th>
+                <th class="d-none d-lg-table-cell"><i class="bi bi-person me-1"></i>Entleiher</th>
+                <th class="d-none d-xl-table-cell"><i class="bi bi-calendar-check me-1"></i>Ausleihdatum</th>
+                <th><i class="bi bi-calendar-x me-1 d-none d-md-inline"></i>Rückgabe</th>
+                <th class="d-none d-md-table-cell"><i class="bi bi-info-circle me-1"></i>Status</th>
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for loan in loans %}
+              {% set days_until_due = (loan.due_date - today).days %}
+              {% set is_overdue = loan.due_date < today %}
+              {% set is_due_soon = days_until_due >= 0 and days_until_due <= 7 %}
+              <tr class="{% if is_overdue %}table-danger{% elif is_due_soon %}table-warning{% endif %}">
+                <td class="d-none d-sm-table-cell">
+                  <span class="badge bg-secondary">#{{ loan.id }}</span>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2 d-none d-md-flex">
+                      <i class="bi bi-box text-primary"></i>
+                    </div>
+                    <div>
+                      <a href="{{ url_for('item_detail', item_id=loan.item.id) }}" class="text-decoration-none fw-bold">
+                        {{ loan.item.name }}
+                      </a>
+                      {% if loan.item.serial %}
+                      <br><small class="text-muted d-none d-sm-inline"><i class="bi bi-hash"></i>{{ loan.item.serial }}</small>
+                      {% endif %}
+                      <div class="d-lg-none mt-1">
+                        <small class="text-muted d-block">
+                          <i class="bi bi-person me-1"></i>{{ loan.borrower.name }}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="d-none d-lg-table-cell">
+                  <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-2 me-2">
+                      <i class="bi bi-person text-info"></i>
+                    </div>
+                    <div>
+                      <strong>{{ loan.borrower.name }}</strong>
+                      {% if loan.borrower.email %}
+                      <br><small class="text-muted"><i class="bi bi-envelope"></i> {{ loan.borrower.email }}</small>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td class="d-none d-xl-table-cell">
+                  <span class="badge bg-light text-dark">
+                    <i class="bi bi-calendar-check"></i> {{ loan.loan_date.strftime('%d.%m.%Y') }}
+                  </span>
+                </td>
+                <td>
+                  {% if is_overdue %}
+                    <span class="badge bg-danger">
+                      <i class="bi bi-exclamation-triangle-fill d-none d-md-inline"></i> {{ loan.due_date.strftime('%d.%m.%Y') }}
+                    </span>
+                    <br class="d-none d-md-inline"><small class="text-danger fw-bold d-none d-md-inline">
+                      <i class="bi bi-clock"></i> {{ (today - loan.due_date).days }} Tag(e) überfällig
+                    </small>
+                    <div class="d-md-none mt-1">
+                      <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill"></i> Überfällig</span>
+                    </div>
+                  {% elif is_due_soon %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="bi bi-clock-history d-none d-md-inline"></i> {{ loan.due_date.strftime('%d.%m.%Y') }}
+                    </span>
+                    <br class="d-none d-md-inline"><small class="text-warning fw-bold d-none d-md-inline">
+                      <i class="bi bi-hourglass-split"></i> Fällig in {{ days_until_due }} Tag(en)
+                    </small>
+                    <div class="d-md-none mt-1">
+                      <span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> Bald fällig</span>
+                    </div>
+                  {% else %}
+                    <span class="badge bg-success">
+                      <i class="bi bi-calendar-check d-none d-md-inline"></i> {{ loan.due_date.strftime('%d.%m.%Y') }}
+                    </span>
+                    <br class="d-none d-md-inline"><small class="text-muted d-none d-md-inline">
+                      <i class="bi bi-hourglass"></i> Noch {{ days_until_due }} Tag(e)
+                    </small>
+                  {% endif %}
+                </td>
+                <td class="d-none d-md-table-cell">
+                  {% if is_overdue %}
+                    <span class="badge bg-danger">
+                      <i class="bi bi-exclamation-triangle-fill me-1"></i>Überfällig
+                    </span>
+                  {% elif is_due_soon %}
+                    <span class="badge bg-warning text-dark">
+                      <i class="bi bi-clock-history me-1"></i>Bald fällig
+                    </span>
+                  {% else %}
+                    <span class="badge bg-success">
+                      <i class="bi bi-check-circle-fill me-1"></i>In Ordnung
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="d-flex flex-column flex-md-row gap-1">
+                    <a href="{{ url_for('item_detail', item_id=loan.item.id) }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye me-1 d-none d-lg-inline"></i><span class="d-none d-sm-inline">Details</span><i class="bi bi-eye d-sm-none"></i>
+                    </a>
+                    <a href="{{ url_for('loan_contract_pdf', loan_id=loan.id) }}" class="btn btn-sm btn-outline-danger d-none d-md-inline-flex" title="Leihvertrag als PDF herunterladen">
+                      <i class="bi bi-file-earmark-pdf me-1 d-none d-lg-inline"></i><span class="d-none d-lg-inline">Vertrag</span><i class="bi bi-file-earmark-pdf d-lg-none"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+    <!-- Empty State -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center py-5">
+            <div class="mb-4">
+              <i class="bi bi-arrow-left-right" style="font-size: 80px; color: #6c757d; opacity: 0.3;"></i>
+            </div>
+            <h3 class="mb-3">Keine aktiven Ausleihen</h3>
+            <p class="text-muted mb-4">
+              Es sind derzeit keine Gegenstände verliehen. Alle Gegenstände sind im Inventar verfügbar.
+            </p>
+
+            <!-- Quick Tips -->
+            <div class="row mt-5">
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-box-arrow-right text-primary" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Gegenstand ausleihen</h5>
+                  <p class="text-muted small">Gehe zur Gegenstandsdetails-Seite und klicke auf "Ausleihen"</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-calendar-check text-success" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Rückgabedatum</h5>
+                  <p class="text-muted small">Lege ein Rückgabedatum fest, um Überfälligkeiten zu vermeiden</p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3">
+                  <i class="bi bi-bell text-warning" style="font-size: 32px;"></i>
+                  <h5 class="mt-2">Automatische Erinnerungen</h5>
+                  <p class="text-muted small">Erhalte Benachrichtigungen bei überfälligen oder bald fälligen Ausleihen</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="mt-4">
+              <a href="{{ url_for('items') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-box-seam me-2"></i>Zu den Gegenständen
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+.hover-card {
+  transition: all 0.3s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.rounded-circle {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge {
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+}
+
+.card-header {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .table {
+    font-size: 0.875rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.375em 0.625em;
+  }
+
+  .gap-1 {
+    gap: 0.5rem !important;
+  }
+}
+</style>
+
+{% endblock %}

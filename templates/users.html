@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Benutzerkonten</h1>
+    <a href="{{ url_for('add_user') }}" class="btn btn-success">
+      <i class="bi bi-plus-lg"></i> Neues Konto erstellen
+    </a>
+  </div>
+
+  <!-- Suchformular -->
+  <form class="d-flex mb-4" method="get" action="{{ url_for('users') }}">
+    <input
+      class="form-control me-2"
+      type="search"
+      name="q"
+      placeholder="Suche nach Name, E-Mail oder Rolle…"
+      value="{{ search }}"
+      aria-label="Suche"
+    >
+    <button class="btn btn-outline-primary" type="submit">Suchen</button>
+  </form>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Benutzername</th>
+        <th>E-Mail</th>
+        <th>Rolle</th>
+        <th>Gruppen</th>
+        <th>Aktionen</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td><span class="badge bg-info">{{ u.role }}</span></td>
+        <td>
+          {% if u.groups %}
+            {% for group in u.groups %}
+              <span class="badge bg-secondary me-1">{{ group.name }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="text-muted small">Keine</span>
+          {% endif %}
+        </td>
+        <td>
+          <!-- TODO: User edit/delete functionality needs to be implemented -->
+          {% if 'manage_users' in permissions %}
+            <a href="#" class="btn btn-sm btn-outline-secondary me-1 disabled"
+               title="Feature wird bald verfügbar sein">Bearbeiten</a>
+            <button class="btn btn-sm btn-outline-danger disabled"
+                    title="Feature wird bald verfügbar sein">Löschen</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

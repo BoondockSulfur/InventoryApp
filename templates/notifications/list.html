@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Benachrichtigungen - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="bi bi-bell"></i> Benachrichtigungen
+            </h1>
+        </div>
+        <div class="col-auto">
+            {% if unread_count > 0 %}
+                <a href="{{ url_for('mark_all_read') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-check-all"></i> Alle als gelesen markieren
+                </a>
+                <a href="{{ url_for('clear_notifications') }}" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i> Alles löschen
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="notificationType" class="form-label">Typ</label>
+                    <select id="notificationType" name="type" class="form-select">
+                        <option value="">Alle Typen</option>
+                        <option value="info" {% if request.args.get('type') == 'info' %}selected{% endif %}>
+                            <i class="bi bi-info-circle"></i> Information
+                        </option>
+                        <option value="warning" {% if request.args.get('type') == 'warning' %}selected{% endif %}>
+                            <i class="bi bi-exclamation-triangle"></i> Warnung
+                        </option>
+                        <option value="error" {% if request.args.get('type') == 'error' %}selected{% endif %}>
+                            <i class="bi bi-exclamation-circle"></i> Fehler
+                        </option>
+                        <option value="success" {% if request.args.get('type') == 'success' %}selected{% endif %}>
+                            <i class="bi bi-check-circle"></i> Erfolg
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="readStatus" class="form-label">Status</label>
+                    <select id="readStatus" name="status" class="form-select">
+                        <option value="">Alle Nachrichten</option>
+                        <option value="unread" {% if request.args.get('status') == 'unread' %}selected{% endif %}>
+                            Ungelesen
+                        </option>
+                        <option value="read" {% if request.args.get('status') == 'read' %}selected{% endif %}>
+                            Gelesen
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="sortBy" class="form-label">Sortierung</label>
+                    <select id="sortBy" name="sort" class="form-select">
+                        <option value="newest" {% if request.args.get('sort') != 'oldest' %}selected{% endif %}>
+                            Neueste zuerst
+                        </option>
+                        <option value="oldest" {% if request.args.get('sort') == 'oldest' %}selected{% endif %}>
+                            Älteste zuerst
+                        </option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistiken -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Ungelesen</h6>
+                    <h3 class="text-primary">{{ unread_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Gesamt</h6>
+                    <h3 class="text-secondary">{{ notifications|length }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Diese Woche</h6>
+                    <h3 class="text-info">{{ weekly_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Wichtig</h6>
+                    <h3 class="text-warning">{{ important_count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benachrichtigungen Liste -->
+    {% if notifications %}
+        {% for notification in notifications %}
+            <div class="card mb-2 {% if not notification.is_read %}border-primary border-2{% endif %}">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <!-- Icon und Titel -->
+                        <div class="col">
+                            <div class="d-flex align-items-start">
+                                <!-- Icon basierend auf Typ -->
+                                {% if notification.type == 'info' %}
+                                    <i class="bi bi-info-circle text-info me-3" style="font-size: 1.5rem;"></i>
+                                {% elif notification.type == 'warning' %}
+                                    <i class="bi bi-exclamation-triangle text-warning me-3" style="font-size: 1.5rem;"></i>
+                                {% elif notification.type == 'error' %}
+                                    <i class="bi bi-exclamation-circle text-danger me-3" style="font-size: 1.5rem;"></i>
+                                {% elif notification.type == 'success' %}
+                                    <i class="bi bi-check-circle text-success me-3" style="font-size: 1.5rem;"></i>
+                                {% endif %}
+
+                                <div>
+                                    <h6 class="mb-1 {% if not notification.is_read %}fw-bold{% endif %}">
+                                        {{ notification.title }}
+                                        {% if notification.is_important %}
+                                            <span class="badge bg-danger ms-2">
+                                                <i class="bi bi-star"></i> Wichtig
+                                            </span>
+                                        {% endif %}
+                                        {% if not notification.is_read %}
+                                            <span class="badge bg-primary ms-1">Neu</span>
+                                        {% endif %}
+                                    </h6>
+                                    <p class="card-text text-muted small mb-1">
+                                        {{ notification.message }}
+                                    </p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i>
+                                        {{ notification.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aktionen -->
+                        <div class="col-auto text-end">
+                            {% if notification.related_item_id %}
+                                <a href="{{ notification.related_item_url }}" class="btn btn-sm btn-outline-primary me-2">
+                                    <i class="bi bi-arrow-right"></i> Anzeigen
+                                </a>
+                            {% endif %}
+
+                            {% if not notification.is_read %}
+                                <a href="{{ url_for('mark_notification_read', notification_id=notification.id) }}" class="btn btn-sm btn-outline-secondary me-2">
+                                    <i class="bi bi-check"></i> Lesen
+                                </a>
+                            {% endif %}
+
+                            <a href="{{ url_for('delete_notification', notification_id=notification.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Wirklich löschen?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            <i class="bi bi-bell-slash"></i>
+            <p class="mb-0 mt-2">Keine Benachrichtigungen</p>
+            <small class="text-muted">Sie haben alle Benachrichtigungen gelesen oder es gibt keine neuen Meldungen.</small>
+        </div>
+    {% endif %}
+
+    <!-- Pagination (falls nötig) -->
+    {% if notifications|length > 20 %}
+        <nav aria-label="Pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item"><a class="page-link" href="#"><i class="bi bi-chevron-left"></i> Zurück</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item"><a class="page-link" href="#">Weiter <i class="bi bi-chevron-right"></i></a></li>
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+<!-- Benachrichtigungseinstellungen -->
+<div class="position-fixed bottom-0 end-0 p-3">
+    <a href="{{ url_for('notification_settings') }}" class="btn btn-outline-secondary" title="Benachrichtigungseinstellungen">
+        <i class="bi bi-gear"></i> Einstellungen
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Wartungen{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-tools"></i> Wartungs-Tracker</h1>
+        <a href="{{ url_for('items') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Neue Wartung
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Gegenstand</th>
+                        <th>Wartungsart</th>
+                        <th>Geplant für</th>
+                        <th>Status</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for maintenance in maintenances %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('item_detail', item_id=maintenance.item_id) }}">
+                                {{ maintenance.item.name }}
+                            </a>
+                        </td>
+                        <td>{{ maintenance.maintenance_type }}</td>
+                        <td>{{ maintenance.scheduled_date.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            {% if maintenance.completed %}
+                                <span class="badge bg-success">Erledigt</span>
+                            {% else %}
+                                <span class="badge bg-warning">Ausstehend</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not maintenance.completed %}
+                            <a href="{{ url_for('complete_maintenance', maintenance_id=maintenance.id) }}"
+                               class="btn btn-sm btn-success">
+                                <i class="bi bi-check-circle"></i> Erledigen
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            Keine Wartungen geplant
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

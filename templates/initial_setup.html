@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Initial Setup – InventoryApp{% endblock %}
+
+{% block content %}
+<style>
+  .setup-wrapper {
+    min-height: calc(100vh - 56px);
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  .setup-card {
+    background: rgba(255,255,255,.95);
+    padding: 3rem; border-radius: .75rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,.3); width:100%; max-width:500px;
+  }
+  body.dark-mode .setup-card {
+    background: rgba(30,30,30,.95); color:#eee;
+  }
+  body.dark-mode .setup-card .form-control {
+    background:#444; color:#eee; border-color:#666;
+  }
+  .setup-icon {
+    font-size: 4rem; color: #667eea; margin-bottom: 1.5rem; text-align: center;
+  }
+  .bottom-logo {
+    position: fixed; right:1rem; bottom:1rem; width:80px; opacity:.35;
+  }
+</style>
+
+<div class="setup-wrapper">
+  <div class="setup-card">
+    <div class="setup-icon">
+      🚀
+    </div>
+    <h2 class="mb-4 text-center">Willkommen bei InventoryApp!</h2>
+    <p class="text-center mb-4 text-muted">
+      Erstellen Sie Ihren Admin-Account, um die Einrichtung abzuschließen.
+    </p>
+
+    <form method="POST" action="{{ url_for('auth.initial_setup') }}">
+      {{ form.hidden_tag() }}
+
+      <div class="mb-3">
+        {{ form.username.label(class="form-label") }}
+        {{ form.username(class="form-control", placeholder="admin") }}
+        {% if form.username.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.username.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control", placeholder="admin@example.com") }}
+        {% if form.email.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.email.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control") }}
+        <div class="form-text small">
+          Mindestens 12 Zeichen mit Groß-/Kleinbuchstaben, Zahlen und Sonderzeichen
+        </div>
+        {% if form.password.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.password.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mb-4">
+        {{ form.password2.label(class="form-label") }}
+        {{ form.password2(class="form-control") }}
+        {% if form.password2.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.password2.errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="d-grid">
+        {{ form.submit(class="btn btn-primary btn-lg") }}
+      </div>
+    </form>
+
+    <div class="mt-4 text-center">
+      <small class="text-muted">
+        Version 2.0.0 | InventoryApp by BoondockSulfur
+      </small>
+    </div>
+  </div>
+
+  <!-- kleines Wasserzeichen‑Logo unten rechts -->
+  <img src="{{ url_for('static', filename='img/Boondock_Logo.png') }}"
+       alt="Boondock Logo" class="bottom-logo">
+</div>
+{% endblock %}

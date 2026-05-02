@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Entleiher</h1>
+{% if current_user.role == 'admin' %}
+<a href="{{ url_for('add_borrower') }}" class="btn btn-success mb-3">Neuen Entleiher hinzufügen</a>
+{% endif %}
+<table class="table table-striped">
+  <thead><tr><th>ID</th><th>Name</th><th>E-Mail</th><th>Typ</th><th>Anzahl Ausleihen</th><th>Aktionen</th></tr></thead>
+  <tbody>
+    {% for borrower in borrowers %}
+    <tr>
+      <td>{{ borrower.id }}</td>
+      <td>{{ borrower.name }}</td>
+      <td>{{ borrower.email }}</td>
+      <td>{{ borrower.type }}</td>
+      <td>{{ borrower.loans|length }}</td>
+      <td></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

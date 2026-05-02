@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Rolle bearbeiten: <span class="badge bg-primary">{{ role.name }}</span></h1>
+    <a href="{{ url_for('admin.roles') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="row">
+    <!-- Berechtigungen auswählen -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Berechtigungen zuweisen</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('admin.edit_role', role_name=role.name) }}" id="roleForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Schnellauswahl & Suche -->
+            <div class="mb-3 border-bottom pb-3">
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Schnellauswahl:</label>
+                  <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="selectAll()">
+                      <i class="bi bi-check-all"></i> Alle
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning" onclick="deselectAll()">
+                      <i class="bi bi-x-circle"></i> Keine
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info" onclick="toggleAll()">
+                      <i class="bi bi-arrow-left-right"></i> Umkehren
+                    </button>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Suche:</label>
+                  <input type="text" class="form-control form-control-sm" id="permSearch"
+                         placeholder="Berechtigung suchen..." onkeyup="filterPermissions()">
+                </div>
+              </div>
+            </div>
+
+            <!-- Kategorien gruppiert -->
+            {% set categories = {
+              'Benutzerverwaltung': ['manage_users', 'manage_roles', 'view_admin_tickets', 'answer_admin_tickets'],
+              'System': ['manage_settings', 'view_dashboard'],
+              'Inventar': ['view_items', 'manage_items', 'view_borrowers'],
+              'Ausleihen': ['view_loans', 'view_own_loans'],
+              'Tickets': ['view_tickets', 'create_tickets', 'view_own_tickets', 'answer_tickets', 'change_ticket_status']
+            } %}
+
+            {% for category_name, category_perms in categories.items() %}
+              <div class="permission-category mb-4">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="bi bi-folder2-open"></i> {{ category_name }}
+                  <span class="badge bg-secondary small ms-2" id="count-{{ category_name }}">0 / {{ category_perms|length }}</span>
+                </h6>
+                <div class="row">
+                  {% for perm in all_perms %}
+                    {% if perm.name in category_perms %}
+                      <div class="col-md-6 mb-2">
+                        <div class="form-check p-3 border rounded hover-shadow">
+                          <input class="form-check-input perm-checkbox"
+                                 type="checkbox"
+                                 id="p_{{ perm.name }}"
+                                 name="permissions"
+                                 value="{{ perm.name }}"
+                                 data-category="{{ category_name }}"
+                                 {% if perm in role.permissions %}checked{% endif %}
+                                 onchange="updateCounts()">
+                          <label class="form-check-label w-100" for="p_{{ perm.name }}">
+                            <strong>{{ perm.name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ perm.description }}</small>
+                          </label>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+
+            <!-- Sonstige Berechtigungen -->
+            {% set all_categorized = [] %}
+            {% for cat_perms in categories.values() %}
+              {% set _ = all_categorized.extend(cat_perms) %}
+            {% endfor %}
+
+            {% set other_perms = [] %}
+            {% for perm in all_perms %}
+              {% if perm.name not in all_categorized %}
+                {% set _ = other_perms.append(perm) %}
+              {% endif %}
+            {% endfor %}
+
+            {% if other_perms %}
+              <div class="permission-category mb-4">
+                <h6 class="text-primary border-bottom pb-2">
+                  <i class="bi bi-folder2-open"></i> Sonstige
+                  <span class="badge bg-secondary small ms-2" id="count-Sonstige">0 / {{ other_perms|length }}</span>
+                </h6>
+                <div class="row">
+                  {% for perm in other_perms %}
+                    <div class="col-md-6 mb-2">
+                      <div class="form-check p-3 border rounded hover-shadow">
+                        <input class="form-check-input perm-checkbox"
+                               type="checkbox"
+                               id="p_{{ perm.name }}"
+                               name="permissions"
+                               value="{{ perm.name }}"
+                               data-category="Sonstige"
+                               {% if perm in role.permissions %}checked{% endif %}
+                               onchange="updateCounts()">
+                        <label class="form-check-label w-100" for="p_{{ perm.name }}">
+                          <strong>{{ perm.name }}</strong>
+                          <br>
+                          <small class="text-muted">{{ perm.description }}</small>
+                        </label>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-save"></i> Änderungen speichern
+              </button>
+              <a href="{{ url_for('admin.roles') }}" class="btn btn-outline-secondary">
+                Abbrechen
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vorschau Sidebar -->
+    <div class="col-lg-4">
+      <div class="card sticky-top" style="top: 20px;">
+        <div class="card-header bg-info text-white">
+          <h6 class="mb-0"><i class="bi bi-eye"></i> Vorschau</h6>
+        </div>
+        <div class="card-body">
+          <h6>Rolle: <strong>{{ role.name }}</strong></h6>
+          <p class="small text-muted">Ausgewählte Berechtigungen:</p>
+          <div id="selectedCount" class="alert alert-info">
+            <strong id="totalSelected">0</strong> von {{ all_perms|length }} Berechtigungen
+          </div>
+          <div id="selectedPermsList" class="small" style="max-height: 400px; overflow-y: auto;">
+            <!-- Wird dynamisch aktualisiert -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.hover-shadow:hover {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  background-color: #f8f9fa;
+}
+</style>
+
+<script>
+// Zähler aktualisieren
+function updateCounts() {
+  const checkboxes = document.querySelectorAll('.perm-checkbox');
+  const categories = {};
+  let totalSelected = 0;
+
+  checkboxes.forEach(cb => {
+    const cat = cb.dataset.category;
+    if (!categories[cat]) {
+      categories[cat] = { total: 0, selected: 0 };
+    }
+    categories[cat].total++;
+    if (cb.checked) {
+      categories[cat].selected++;
+      totalSelected++;
+    }
+  });
+
+  // Kategorie-Zähler aktualisieren
+  for (const [cat, counts] of Object.entries(categories)) {
+    const countBadge = document.getElementById(`count-${cat}`);
+    if (countBadge) {
+      countBadge.textContent = `${counts.selected} / ${counts.total}`;
+    }
+  }
+
+  // Gesamt-Zähler
+  document.getElementById('totalSelected').textContent = totalSelected;
+
+  // Vorschau-Liste aktualisieren
+  const selectedList = document.getElementById('selectedPermsList');
+  const selected = Array.from(checkboxes)
+    .filter(cb => cb.checked)
+    .map(cb => {
+      const label = document.querySelector(`label[for="${cb.id}"]`);
+      const name = label.querySelector('strong').textContent;
+      return `<div class="mb-1"><i class="bi bi-check-circle-fill text-success"></i> ${name}</div>`;
+    });
+
+  if (selected.length === 0) {
+    selectedList.innerHTML = '<p class="text-muted small">Keine Berechtigungen ausgewählt</p>';
+  } else {
+    selectedList.innerHTML = selected.join('');
+  }
+}
+
+function selectAll() {
+  document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = true);
+  updateCounts();
+}
+
+function deselectAll() {
+  document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = false);
+  updateCounts();
+}
+
+function toggleAll() {
+  document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = !cb.checked);
+  updateCounts();
+}
+
+function filterPermissions() {
+  const searchTerm = document.getElementById('permSearch').value.toLowerCase();
+  const categories = document.querySelectorAll('.permission-category');
+
+  categories.forEach(category => {
+    const checkboxContainers = category.querySelectorAll('.form-check');
+    let visibleCount = 0;
+
+    checkboxContainers.forEach(container => {
+      const label = container.querySelector('label');
+      const text = label.textContent.toLowerCase();
+
+      if (text.includes(searchTerm)) {
+        container.parentElement.style.display = '';
+        visibleCount++;
+      } else {
+        container.parentElement.style.display = 'none';
+      }
+    });
+
+    // Hide category if no visible permissions
+    category.style.display = visibleCount > 0 ? '' : 'none';
+  });
+}
+
+// Initiale Zählung beim Laden
+document.addEventListener('DOMContentLoaded', updateCounts);
+</script>
+{% endblock %}

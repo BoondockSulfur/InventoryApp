@@ -1,0 +1,87 @@
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11000">
+    <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span id="successToastMessage"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span id="errorToastMessage"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <div id="infoToast" class="toast align-items-center text-bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <span id="infoToastMessage"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== CSRF Token Helper =====
+function getCSRFToken() {
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (!metaTag) {
+        console.error('CSRF token meta tag not found!');
+        return null;
+    }
+    return metaTag.content;
+}
+
+// ===== Toast Notification Helper Functions =====
+function showSuccessToast(message) {
+    const toastElement = document.getElementById('successToast');
+    document.getElementById('successToastMessage').textContent = message;
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toast.show();
+}
+
+function showErrorToast(message) {
+    const toastElement = document.getElementById('errorToast');
+    document.getElementById('errorToastMessage').textContent = message;
+    const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+    toast.show();
+}
+
+function showInfoToast(message) {
+    const toastElement = document.getElementById('infoToast');
+    document.getElementById('infoToastMessage').textContent = message;
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toast.show();
+}
+
+// ===== Secure Fetch Helper with CSRF Token =====
+async function secureFetch(url, options = {}) {
+    const csrfToken = getCSRFToken();
+
+    if (!options.headers) {
+        options.headers = {};
+    }
+
+    // Add CSRF token to headers for POST, PUT, DELETE requests
+    if (csrfToken && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(options.method?.toUpperCase())) {
+        options.headers['X-CSRFToken'] = csrfToken;
+    }
+
+    // Ensure Content-Type is set for JSON requests
+    if (options.body && typeof options.body === 'string') {
+        options.headers['Content-Type'] = 'application/json';
+    }
+
+    return fetch(url, options);
+}
+</script>

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Standort hinzufügen - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="mb-4">
+                <i class="bi bi-geo-alt"></i> Neuen Standort erstellen
+            </h1>
+
+            <form method="post" novalidate class="needs-validation">
+                <!-- Name -->
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="z.B. Büro 1, Lager, Werkstatt" required autofocus>
+                </div>
+
+                <!-- Beschreibung -->
+                <div class="mb-3">
+                    <label for="description" class="form-label">Beschreibung</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="Ausführliche Beschreibung des Standorts..."></textarea>
+                </div>
+
+                <!-- Parent Location -->
+                <div class="mb-3">
+                    <label for="parent_id" class="form-label">Übergeordneter Standort (optional)</label>
+                    <select class="form-select" id="parent_id" name="parent_id">
+                        <option value="">-- Kein übergeordneter Standort --</option>
+                        {% for location in all_locations %}
+                        <option value="{{ location.id }}">{{ location.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Standort erstellen</button>
+                    <a href="{{ url_for('location_list') }}" class="btn btn-secondary btn-lg">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Box -->
+        <div class="col-lg-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-info-circle"></i> Über Standorte</h5>
+                    <p class="card-text small">
+                        Standorte helfen Ihnen, Gegenstände räumlich zu organisieren und zu lokalisieren.
+                    </p>
+                    <hr>
+                    <p class="small mb-0"><strong>Typische Standorte:</strong></p>
+                    <ul class="small mt-2">
+                        <li>Einzelne Büros oder Räume</li>
+                        <li>Lager- oder Lagerbereiche</li>
+                        <li>Werkstätten oder Labs</li>
+                        <li>Externe Standorte</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

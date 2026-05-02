@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}SLA-Regeln verwalten - InventoryApp
+{% include 'tickets/_toast_notifications.html' %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-clock-history"></i> SLA-Regeln</h2>
+                    <p class="text-muted">Service Level Agreements und Eskalations-Regeln</p>
+                </div>
+                <a href="{{ url_for('tickets.settings') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück zu Einstellungen
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> SLA-Regeln-Liste</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Beschreibung</th>
+                                    <th>Priorität</th>
+                                    <th>Kategorie</th>
+                                    <th>First Response (h)</th>
+                                    <th>Resolution (h)</th>
+                                    <th>Vorwarnung (h)</th>
+                                    <th>Auto-Eskalation</th>
+                                    <th>Eskalieren an</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if sla_rules %}
+                                    {% for sla in sla_rules %}
+                                    <tr data-id="{{ sla.id }}">
+                                        <td><strong>{{ sla.name }}</strong></td>
+                                        <td>{{ sla.description or '-' }}</td>
+                                        <td>
+                                            {% if sla.priority_level %}
+                                                <span class="badge bg-warning">Level {{ sla.priority_level }}</span>
+                                            {% else %}
+                                                <em class="text-muted">Alle</em>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if sla.category_name %}
+                                                <span class="badge bg-info">{{ sla.category_name }}</span>
+                                            {% else %}
+                                                <em class="text-muted">Alle</em>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ sla.first_response_hours }}</td>
+                                        <td>{{ sla.resolution_hours }}</td>
+                                        <td>{{ sla.warning_threshold_hours }}</td>
+                                        <td>
+                                            {% if sla.auto_escalate %}
+                                                <span class="badge bg-danger">Ja</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Nein</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if sla.escalate_to %}
+                                                {{ sla.escalate_to.username }}
+                                            {% else %}
+                                                <em class="text-muted">-</em>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if sla.is_active %}
+                                                <span class="badge bg-success">Aktiv</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inaktiv</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="editSLA({{ sla.id }})">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteSLA({{ sla.id }})">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="11" class="text-center text-muted py-4">
+                                            <i class="bi bi-inbox" style="font-size: 48px;"></i>
+                                            <p class="mt-2">Keine SLA-Regeln vorhanden</p>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <button class="btn btn-danger" onclick="showAddSLAModal()">
+                            <i class="bi bi-plus-circle"></i> Neue SLA-Regel
+                        </button>
+                    </div>
+
+                    <div class="alert alert-warning mt-4">
+                        <h6><i class="bi bi-exclamation-triangle"></i> Hinweis zu SLA-Regeln:</h6>
+                        <p class="mb-0">SLA-Regeln werden in der Reihenfolge ihrer Spezifität angewendet. Regeln mit spezifischer Priorität und Kategorie haben Vorrang vor allgemeinen Regeln.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal für Erstellen/Bearbeiten -->
+<div class="modal fade" id="slaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="bi bi-clock-history me-2"></i>Neue SLA-Regel
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="slaForm">
+                    <input type="hidden" id="slaId">
+
+                    <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-2"></i>Grundinformationen</h6>
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-bold">
+                            Regel-Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="name" required placeholder="z.B. P1 Critical Response">
+                        <div class="form-text">Eindeutiger Name für die SLA-Regel</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-bold">Beschreibung</label>
+                        <textarea class="form-control" id="description" rows="2" placeholder="Optionale Beschreibung der SLA-Regel"></textarea>
+                        <div class="form-text">Hilft Benutzern die Regel besser zu verstehen</div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-funnel me-2"></i>Anwendungsbereich</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="priority_level" class="form-label fw-bold">Prioritätsstufe</label>
+                            <input type="number" class="form-control" id="priority_level" min="1" max="5" placeholder="Leer = Alle">
+                            <div class="form-text">1-5 oder leer lassen für alle Prioritäten</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="category_name" class="form-label fw-bold">Kategorie</label>
+                            <input type="text" class="form-control" id="category_name" placeholder="Leer = Alle">
+                            <div class="form-text">Kategoriename oder leer lassen für alle</div>
+                        </div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-clock me-2"></i>Zeitvorgaben</h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="first_response_hours" class="form-label fw-bold">
+                                First Response (h) <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" class="form-control" id="first_response_hours" value="4" min="1" required>
+                            <div class="form-text">Zeit bis zur ersten Antwort</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="resolution_hours" class="form-label fw-bold">
+                                Resolution (h) <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" class="form-control" id="resolution_hours" value="24" min="1" required>
+                            <div class="form-text">Zeit bis zur vollständigen Lösung</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="warning_threshold_hours" class="form-label fw-bold">Vorwarnung (h)</label>
+                            <input type="number" class="form-control" id="warning_threshold_hours" value="2" min="1">
+                            <div class="form-text">Warnung vor SLA-Bruch</div>
+                        </div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4"><i class="bi bi-exclamation-triangle me-2"></i>Eskalation</h6>
+                    <div class="form-check form-switch mb-3">
+                        <input type="checkbox" class="form-check-input" role="switch" id="auto_escalate">
+                        <label class="form-check-label fw-bold" for="auto_escalate">
+                            <i class="bi bi-arrow-up-circle me-1"></i>Automatische Eskalation bei SLA-Verletzung
+                        </label>
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" role="switch" id="is_active" checked>
+                        <label class="form-check-label fw-bold" for="is_active">
+                            <i class="bi bi-toggle-on me-1"></i>Regel ist aktiv
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>Abbrechen
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveSLA()">
+                    <i class="bi bi-check-circle me-1"></i>Speichern
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let slaModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    slaModal = new bootstrap.Modal(document.getElementById('slaModal'));
+});
+
+function showAddSLAModal() {
+    document.getElementById('modalTitle').innerHTML = '<i class="bi bi-clock-history me-2"></i>Neue SLA-Regel';
+    document.getElementById('slaForm').reset();
+    document.getElementById('slaId').value = '';
+    document.getElementById('first_response_hours').value = '4';
+    document.getElementById('resolution_hours').value = '24';
+    document.getElementById('warning_threshold_hours').value = '2';
+    document.getElementById('auto_escalate').checked = false;
+    document.getElementById('is_active').checked = true;
+    slaModal.show();
+}
+
+async function editSLA(id) {
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    const cells = row.cells;
+
+    document.getElementById('modalTitle').innerHTML = '<i class="bi bi-clock-history me-2"></i>SLA-Regel bearbeiten';
+    document.getElementById('slaId').value = id;
+    document.getElementById('name').value = cells[0].querySelector('strong').textContent;
+    document.getElementById('description').value = cells[1].textContent !== '-' ? cells[1].textContent : '';
+
+    // Priority level
+    const priorityBadge = cells[2].querySelector('.badge');
+    if (priorityBadge) {
+        const levelMatch = priorityBadge.textContent.match(/Level (\d+)/);
+        document.getElementById('priority_level').value = levelMatch ? levelMatch[1] : '';
+    } else {
+        document.getElementById('priority_level').value = '';
+    }
+
+    // Category
+    const categoryBadge = cells[3].querySelector('.badge');
+    document.getElementById('category_name').value = categoryBadge ? categoryBadge.textContent : '';
+
+    document.getElementById('first_response_hours').value = cells[4].textContent;
+    document.getElementById('resolution_hours').value = cells[5].textContent;
+    document.getElementById('warning_threshold_hours').value = cells[6].textContent;
+    document.getElementById('auto_escalate').checked = cells[7].textContent.includes('Ja');
+    document.getElementById('is_active').checked = cells[9].textContent.includes('Aktiv');
+
+    slaModal.show();
+}
+
+async function saveSLA() {
+    const id = document.getElementById('slaId').value;
+
+    // Get values, converting empty strings to null for optional fields
+    const priorityLevel = document.getElementById('priority_level').value;
+    const categoryName = document.getElementById('category_name').value;
+
+    const data = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        priority_level: priorityLevel ? parseInt(priorityLevel) : null,
+        category_name: categoryName || null,
+        first_response_hours: parseInt(document.getElementById('first_response_hours').value),
+        resolution_hours: parseInt(document.getElementById('resolution_hours').value),
+        warning_threshold_hours: parseInt(document.getElementById('warning_threshold_hours').value),
+        auto_escalate: document.getElementById('auto_escalate').checked,
+        is_active: document.getElementById('is_active').checked
+    };
+
+    const url = id ? `/tickets/api/sla/${id}` : '/tickets/api/sla';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const response = await secureFetch(url, {method: method, body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            slaModal.hide();
+            showSuccessToast(id ? 'SLA-Regel erfolgreich aktualisiert!' : 'SLA-Regel erfolgreich erstellt!');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showErrorToast('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        showErrorToast('Fehler beim Speichern: ' + error.message);
+    }
+}
+
+async function deleteSLA(id) {
+    if (!confirm('Möchten Sie diese SLA-Regel wirklich löschen?')) {
+        return;
+    }
+
+    try {
+        const response = await secureFetch(`/tickets/api/sla/${id}`, {method: 'DELETE'});
+
+        const result = await response.json();
+
+        if (result.success) {
+            showSuccessToast('SLA-Regel erfolgreich gelöscht!');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showErrorToast('Fehler: ' + (result.error || 'Unbekannter Fehler'));
+        }
+    } catch (error) {
+        showErrorToast('Fehler beim Löschen: ' + error.message);
+    }
+}
+</script>
+
+{% include 'tickets/_toast_notifications.html' %}
+
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Massen-Import - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">
+        <i class="bi bi-upload"></i> Gegenstände importieren
+    </h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">CSV/Excel-Datei hochladen</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate class="needs-validation" enctype="multipart/form-data">
+                        <!-- Datei-Upload -->
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Datei auswählen</label>
+                            <input type="file" class="form-control form-control-lg" id="file" name="file" accept=".csv,.xlsx,.xls" required>
+                            <small class="form-text text-muted d-block mt-2">
+                                Unterstützte Formate: CSV (.csv), Excel (.xlsx, .xls)
+                                Max. Größe: 10 MB
+                            </small>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Import starten</button>
+                            <a href="{{ url_for('items') }}" class="btn btn-secondary btn-lg">Abbrechen</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hilfetexte und Vorlagen -->
+        <div class="col-lg-4">
+            <!-- Spalten-Übersicht -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-columns-gap"></i> Erforderliche Spalten</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <td><code>name</code></td>
+                                <td><span class="badge bg-danger">erforderlich</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>serial</code></td>
+                                <td><span class="badge bg-danger">erforderlich</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>category</code></td>
+                                <td><span class="badge bg-warning text-dark">optional</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>location</code></td>
+                                <td><span class="badge bg-warning text-dark">optional</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>status</code></td>
+                                <td><span class="badge bg-warning text-dark">optional</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>owner</code></td>
+                                <td><span class="badge bg-warning text-dark">optional</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>note</code></td>
+                                <td><span class="badge bg-warning text-dark">optional</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Beispiel-Download -->
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-download"></i> Vorlagen</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Erstellen Sie eine Datei mit den erforderlichen Spalten (siehe links)</p>
+                </div>
+            </div>
+
+            <!-- Tipps -->
+            <div class="card bg-info bg-opacity-10">
+                <div class="card-header bg-transparent border-info">
+                    <h5 class="mb-0 text-info"><i class="bi bi-lightbulb"></i> Tipps</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li>Verwenden Sie die bereitgestellten Vorlagen</li>
+                        <li>Überprüfen Sie die Spaltennamen genau</li>
+                        <li>Duplikate werden anhand der Seriennummer erkannt</li>
+                        <li>Ungültige Zeilen werden übersprungen</li>
+                        <li>Nach dem Import erhalten Sie einen Bericht</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Beispiel-Vorschau -->
+    <div class="card mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-eye"></i> Beispiel-Format</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>name</th>
+                            <th>serial</th>
+                            <th>category</th>
+                            <th>location</th>
+                            <th>status</th>
+                            <th>owner</th>
+                            <th>note</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Laptop Dell XPS</td>
+                            <td>DELL-2024-001</td>
+                            <td>IT-Equipment</td>
+                            <td>Büro 1</td>
+                            <td>In Verwendung</td>
+                            <td>Max Mustermann</td>
+                            <td>Neuanschaffung</td>
+                        </tr>
+                        <tr>
+                            <td>Monitor Samsung 27"</td>
+                            <td>SAM-2024-002</td>
+                            <td>IT-Equipment</td>
+                            <td>Büro 1</td>
+                            <td>In Verwendung</td>
+                            <td>Max Mustermann</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

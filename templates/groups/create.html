@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Neue Gruppe erstellen - InventoryApp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Neue Gruppe erstellen</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Gruppenname <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required
+                                   placeholder="z.B. IT-Abteilung, Verwaltung, Lager">
+                            <small class="form-text text-muted">
+                                Ein eindeutiger Name für die Gruppe
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Beschreibung</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="Optionale Beschreibung der Gruppe und ihrer Zuständigkeiten"></textarea>
+                            <small class="form-text text-muted">
+                                Beschreiben Sie den Zweck und die Aufgaben dieser Gruppe
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Hinweis:</strong> Nach dem Erstellen können Sie Rollen und Benutzer zur Gruppe hinzufügen.
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('group_list') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Zurück
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-lg"></i> Gruppe erstellen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
